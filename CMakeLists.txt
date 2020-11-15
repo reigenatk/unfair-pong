@@ -50,10 +50,10 @@ get_filename_component(APP_PATH "${CMAKE_CURRENT_SOURCE_DIR}/" ABSOLUTE)
 include("${CINDER_PATH}/proj/cmake/modules/cinderMakeApp.cmake")
 
 # The files we make have to be added here
-list(APPEND CORE_SOURCE_FILES src/core/ball.cc src/core/user_bumper.cc)
+list(APPEND CORE_SOURCE_FILES src/core/ball.cc src/core/user_bumper.cc src/core/cpu_bumper.cc)
 
 
-list(APPEND SOURCE_FILES    ${CORE_SOURCE_FILES} src/visualizer/unfair_pong_app.cc src/visualizer/game_window.cc)
+list(APPEND SOURCE_FILES    ${CORE_SOURCE_FILES} src/visualizer/unfair_pong_app.cc src/visualizer/game.cc)
 # add tests here
 list(APPEND TEST_FILES tests/box_tests.cc)
 

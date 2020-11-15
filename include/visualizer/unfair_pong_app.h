@@ -3,7 +3,7 @@
 #include "cinder/app/App.h"
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
-#include "game_window.h"
+#include "game.h"
 
 namespace unfairpong {
 
@@ -14,8 +14,10 @@ namespace visualizer {
 class UnfairPongApp : public ci::app::App {
  public:
 
-  UnfairPongApp();
+  const double window_length_ = 800;
+  const double window_height_ = 800;
 
+  UnfairPongApp();
 
   void setup() override;
   void update() override;
@@ -26,7 +28,7 @@ class UnfairPongApp : public ci::app::App {
   void keyDown(ci::app::KeyEvent event) override;
 
  private:
-  GameWindow unfair_pong_window;
+  Game unfair_pong_instance;
 
 
 
