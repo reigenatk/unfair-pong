@@ -11,14 +11,23 @@ namespace unfairpong {
     class CpuBumper {
     public:
         CpuBumper();
-        CpuBumper(vec2 center_position, double length_of_bumper, cinder::Color color, double thickness);
+        CpuBumper(vec2 center_position, double length_of_bumper, cinder::Color color, double thickness,
+                  float max_movement_speed, float left_wall, float right_wall);
         void Draw() const;
+        double GetBumperThickness();
+        vec2& GetBumperCenter();
+        double GetBumperLength();
+
+        void MakeMovementDecision(const vec2& ball_position, const vec2& ball_velocity);
 
     private:
+        float max_movement_speed_;
         vec2 center_position_;
         double length_of_bumper_;
         cinder::Color bumper_color_;
         double thickness_of_bumper_;
+        float left_wall_;
+        float right_wall_;
 
     };
 

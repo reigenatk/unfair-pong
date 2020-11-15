@@ -12,7 +12,7 @@ namespace unfairpong {
     public:
         UserBumper();
         UserBumper(vec2 center_position, double length_of_bumper, cinder::Color color,
-                   double thickness, float left_boundary, float right_boundary);
+                   double thickness, float left_wall, float right_wall);
         void Draw() const;
         void ExecuteTimeStep();
         void MoveBumperLeft();
@@ -29,8 +29,8 @@ namespace unfairpong {
         double length_of_bumper_;
         cinder::Color bumper_color_;
         double thickness_of_bumper_;
-        float left_boundary_;
-        float right_boundary_;
+        float left_wall_;
+        float right_wall_;
     };
 
 }

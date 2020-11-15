@@ -12,14 +12,14 @@ namespace unfairpong {
     }
 
     UserBumper::UserBumper(vec2 center_position, double length_of_bumper, cinder::Color color,
-                           double thickness, float left_boundary, float right_boundary) {
+                           double thickness, float left_wall, float right_wall) {
         center_position_ = center_position;
         length_of_bumper_ = length_of_bumper;
         bumper_color_ = color;
         thickness_of_bumper_ = thickness;
         horizontal_velocity_of_bumper = 0;
-        left_boundary_ = left_boundary;
-        right_boundary_ = right_boundary;
+        left_wall_ = left_wall;
+        right_wall_ = right_wall;
     }
 
     double UserBumper::GetBumperThickness() {
@@ -47,12 +47,12 @@ namespace unfairpong {
     }
 
     void UserBumper::ExecuteTimeStep() {
-        if (center_position_.x - (length_of_bumper_ / 2.0) + horizontal_velocity_of_bumper < left_boundary_) {
-            center_position_.x = left_boundary_ + (float) (length_of_bumper_ / 2.0);
+        if (center_position_.x - (length_of_bumper_ / 2.0) + horizontal_velocity_of_bumper < left_wall_) {
+            center_position_.x = left_wall_ + (float) (length_of_bumper_ / 2.0);
             horizontal_velocity_of_bumper = 0;
         }
-        else if (center_position_.x + (length_of_bumper_ / 2.0) + horizontal_velocity_of_bumper > right_boundary_) {
-            center_position_.x = right_boundary_ - (float) (length_of_bumper_ / 2.0);
+        else if (center_position_.x + (length_of_bumper_ / 2.0) + horizontal_velocity_of_bumper > right_wall_) {
+            center_position_.x = right_wall_ - (float) (length_of_bumper_ / 2.0);
             horizontal_velocity_of_bumper = 0;
         }
         else {

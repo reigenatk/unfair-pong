@@ -38,7 +38,7 @@ namespace visualizer {
                                 100, cinder::Color(1, 0, 0),
                                 10, (float) left_wall_, (float) right_wall_);
         cpu_bumper_ = CpuBumper(vec2((left_wall_ + right_wall_) / 2.0, top_wall_), 100,
-                                  cinder::Color(0, 1, 0), 10);
+                                  cinder::Color(0, 1, 0), 10, 10, float(left_wall_), (float) right_wall_);
 
         vec2 random_velocity = vec2(GenerateRandomDouble(starting_velocity_cap_), GenerateRandomDouble(starting_velocity_cap_));
         ball_in_play = Ball(vec2((left_wall_ + right_wall_) / 2.0, (top_wall_+bottom_wall_) / 2.0),
@@ -79,11 +79,11 @@ namespace visualizer {
                                   100, cinder::Color(1, 0, 0),
                                   10, (float) left_wall_, (float) right_wall_);
         cpu_bumper_ = CpuBumper(vec2((left_wall_ + right_wall_) / 2.0, top_wall_), 100,
-                                cinder::Color(0, 1, 0), 10);
+                                cinder::Color(0, 1, 0), 10, 10, float(left_wall_), (float) right_wall_);
+
         vec2 random_velocity = vec2(GenerateRandomDouble(starting_velocity_cap_), GenerateRandomDouble(starting_velocity_cap_));
         ball_in_play = Ball(vec2((left_wall_ + right_wall_) / 2.0, (top_wall_+bottom_wall_) / 2.0),
-                            random_velocity, cinder::Color(0, 0, 1), 20);
-
+                            random_velocity, cinder::Color(0, 0, 1), 5);
     }
 
     void Game::CheckIfPlayerScored() {
@@ -118,7 +118,7 @@ namespace visualizer {
     }
 
     void Game::UpdateCpuBumper() {
-
+        cpu_bumper_.MakeMovementDecision(ball_in_play.GetPosition(), ball_in_play.GetVelocity());
     }
 
     void Game::ExecuteBallUserBumperCollision() {
@@ -137,7 +137,16 @@ namespace visualizer {
     }
 
     void Game::ExecuteBallCpuBumperCollision() {
+        vec2& current_ball_position = ball_in_play.GetPosition();
+        vec2& current_ball_velocity = ball_in_play.GetVelocity();
+        double bumper_thickness = cpu_bumper_.GetBumperThickness();
+        double bumper_length = cpu_bumper_.GetBumperLength();
+        vec2& bumper_center = cpu_bumper_.GetBumperCenter();
 
+        if (abs(current_ball_position.y - top_wall_) < bumper_thickness &&
+            abs(current_ball_position.x - bumper_center.x) < (float) (bumper_length / 2.0)) {
+            current_ball_velocity.y = - current_ball_velocity.y;
+        }
     }
 
     void Game::UpdateUserBumper() {
