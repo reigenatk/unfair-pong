@@ -19,11 +19,17 @@ namespace visualizer {
 class Game {
  public:
 
+    size_t points_to_win_ = 10;
+
+    double starting_velocity_cap_ = 2.55;
+
     Game();
 
     Game(vec2 top_left, double length, double height);
 
     void Draw() const;
+
+    static double Game::GenerateRandomDouble(double absolute_value_limit);
 
     void UpdateBall();
 
@@ -31,7 +37,15 @@ class Game {
 
     void UpdateCpuBumper();
 
-    void keyDown(ci::app::KeyEvent event);
+    void CheckIfPlayerScored();
+
+    void ExecuteBallWallCollision();
+
+    void ExecuteBallUserBumperCollision();
+
+    void ExecuteBallCpuBumperCollision();
+
+    void GameReset();
 
     UserBumper& GetUserBumper();
 
@@ -47,9 +61,10 @@ class Game {
 
 
     bool is_game_running_;
+    bool is_round_running_;
     size_t user_score_;
     size_t cpu_score_;
-    size_t points_to_win_;
+
 
     Ball ball_in_play;
     CpuBumper cpu_bumper_;

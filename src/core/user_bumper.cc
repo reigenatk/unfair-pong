@@ -22,6 +22,18 @@ namespace unfairpong {
         right_boundary_ = right_boundary;
     }
 
+    double UserBumper::GetBumperThickness() {
+        return thickness_of_bumper_;
+    }
+
+    vec2& UserBumper::GetBumperCenter() {
+        return center_position_;
+    }
+
+    double UserBumper::GetBumperLength() {
+        return length_of_bumper_;
+    }
+
     void UserBumper::Draw() const {
         ci::gl::color(bumper_color_);
         vec2 top_left_corner_ = center_position_ + vec2(-length_of_bumper_ / 2.0, -thickness_of_bumper_);

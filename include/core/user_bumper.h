@@ -19,6 +19,10 @@ namespace unfairpong {
         void MoveBumperRight();
         void StopBumper();
 
+        double GetBumperThickness();
+        vec2& GetBumperCenter();
+        double GetBumperLength();
+
     private:
         vec2 center_position_;
         float horizontal_velocity_of_bumper;

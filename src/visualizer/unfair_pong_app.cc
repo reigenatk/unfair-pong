@@ -31,6 +31,10 @@ void UnfairPongApp::update() {
     unfair_pong_instance.UpdateUserBumper();
     unfair_pong_instance.UpdateCpuBumper();
 
+    unfair_pong_instance.CheckIfPlayerScored();
+    unfair_pong_instance.ExecuteBallWallCollision();
+    unfair_pong_instance.ExecuteBallUserBumperCollision();
+    unfair_pong_instance.ExecuteBallCpuBumperCollision();
 }
 
 void UnfairPongApp::draw() {
