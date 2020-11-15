@@ -27,6 +27,9 @@ class UnfairPongApp : public ci::app::App {
   // down key is slow down, up key is speed up
   void keyDown(ci::app::KeyEvent event) override;
 
+  void mouseDown(ci::app::MouseEvent event);
+  void mouseDrag(ci::app::MouseEvent event);
+
  private:
   Game unfair_pong_instance;
 

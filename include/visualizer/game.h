@@ -21,15 +21,17 @@ class Game {
 
     size_t points_to_win_ = 10;
 
-    double starting_velocity_cap_ = 2.55;
+    double starting_velocity_cap_ = 5;
 
     Game();
 
     Game(vec2 top_left, double length, double height);
 
-    void Draw() const;
+    void Draw() ;
 
     static double Game::GenerateRandomDouble(double absolute_value_limit);
+
+    void HandleMovement(const vec2& mouse_coords);
 
     void UpdateBall();
 
@@ -44,6 +46,8 @@ class Game {
     void ExecuteBallUserBumperCollision();
 
     void ExecuteBallCpuBumperCollision();
+
+    vec2 RandomVelocityGivenSpeed(double speed_desired, bool positive_y_velocity);
 
     void GameReset();
 

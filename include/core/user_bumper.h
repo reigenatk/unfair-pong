@@ -18,6 +18,7 @@ namespace unfairpong {
         void MoveBumperLeft();
         void MoveBumperRight();
         void StopBumper();
+        void SetBumperCenter(const vec2 &mouse_coords);
 
         double GetBumperThickness();
         vec2& GetBumperCenter();

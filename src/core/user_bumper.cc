@@ -34,6 +34,18 @@ namespace unfairpong {
         return length_of_bumper_;
     }
 
+    void UserBumper::SetBumperCenter(const vec2 &mouse_coords) {
+        if (mouse_coords.x < left_wall_ + (float) (length_of_bumper_ / 2.0)) {
+            center_position_.x = left_wall_ + (float) (length_of_bumper_ / 2.0);
+        }
+        else if (mouse_coords.x > right_wall_ - (float) (length_of_bumper_ / 2.0)) {
+            center_position_.x = right_wall_ - (float) (length_of_bumper_ / 2.0);
+        }
+        else {
+            center_position_.x = mouse_coords.x;
+        }
+    }
+
     void UserBumper::Draw() const {
         ci::gl::color(bumper_color_);
         vec2 top_left_corner_ = center_position_ + vec2(-length_of_bumper_ / 2.0, -thickness_of_bumper_);

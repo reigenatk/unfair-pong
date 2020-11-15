@@ -57,9 +57,53 @@ namespace visualizer {
         return dist1(rng);
     }
 
-    void Game::Draw() const {
+    vec2 Game::RandomVelocityGivenSpeed(double speed_desired, bool positive_y_velocity) {
+        double new_y_vel;
+        double new_x_vel;
+        if (positive_y_velocity) {
+            new_y_vel = GenerateRandomDouble(speed_desired);
+            if (new_y_vel < 0) {
+                new_y_vel = -new_y_vel;
+            }
+            double remaining_magnitude = sqrt(pow(speed_desired, 2) - pow(new_y_vel, 2));
+
+            double is_x_vel_positive = GenerateRandomDouble(1);
+            if (is_x_vel_positive > 0.5) {
+                new_x_vel = remaining_magnitude;
+            }
+            else {
+                new_x_vel = -remaining_magnitude;
+            }
+        }
+        else {
+            new_y_vel = GenerateRandomDouble(speed_desired);
+            if (new_y_vel > 0) {
+                new_y_vel = -new_y_vel;
+            }
+            double remaining_magnitude = sqrt(pow(speed_desired, 2) - pow(new_y_vel, 2));
+            double is_x_vel_positive = GenerateRandomDouble(1);
+            if (is_x_vel_positive > 0.5) {
+                new_x_vel = remaining_magnitude;
+            }
+            else {
+                new_x_vel = -remaining_magnitude;
+            }
+
+        }
+        return vec2(new_x_vel, new_y_vel);
+    }
+
+    void Game::HandleMovement(const vec2 &mouse_coords) {
+        user_bumper_.SetBumperCenter(mouse_coords);
+    }
+
+    void Game::Draw() {
         ci::gl::drawStringCentered("Control with the left and right arrow keys",
                                    vec2((left_wall_ + right_wall_) / 2.0, bottom_wall_ + 20),
+                                   ci::Color("black"), ci::Font("Helvetica", 15));
+
+        ci::gl::drawStringCentered("Ball velocity" + std::to_string(length(ball_in_play.GetVelocity())),
+                                   vec2((left_wall_ + right_wall_) / 2.0, bottom_wall_ + 50),
                                    ci::Color("black"), ci::Font("Helvetica", 15));
 
         vec2 bottom_right_corner = top_left_corner_ + vec2(length_, height_);
@@ -132,7 +176,7 @@ namespace visualizer {
         // as well as in the range of our bumper length then it must be intersecting
         if (abs(current_ball_position.y - bottom_wall_) < bumper_thickness &&
                                 abs(current_ball_position.x - bumper_center.x) < (float) (bumper_length / 2.0)) {
-            current_ball_velocity.y = - current_ball_velocity.y;
+            current_ball_velocity = RandomVelocityGivenSpeed(length(current_ball_velocity) + 1, false);
         }
     }
 
@@ -145,7 +189,7 @@ namespace visualizer {
 
         if (abs(current_ball_position.y - top_wall_) < bumper_thickness &&
             abs(current_ball_position.x - bumper_center.x) < (float) (bumper_length / 2.0)) {
-            current_ball_velocity.y = - current_ball_velocity.y;
+            current_ball_velocity = RandomVelocityGivenSpeed(length(current_ball_velocity) + 1, true);
         }
     }
 

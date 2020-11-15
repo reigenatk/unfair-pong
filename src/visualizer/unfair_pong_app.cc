@@ -51,6 +51,14 @@ void UnfairPongApp::draw() {
                                ci::Color("black"), ci::Font("Helvetica", 15));
 }
 
+void UnfairPongApp::mouseDown(ci::app::MouseEvent event) {
+    unfair_pong_instance.HandleMovement(event.getPos());
+}
+
+void UnfairPongApp::mouseDrag(ci::app::MouseEvent event) {
+    unfair_pong_instance.HandleMovement(event.getPos());
+}
+
 void UnfairPongApp::keyDown(ci::app::KeyEvent event) {
     switch (event.getCode()) {
         case ci::app::KeyEvent::KEY_1: {
