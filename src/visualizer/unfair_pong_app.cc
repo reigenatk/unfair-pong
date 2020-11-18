@@ -33,6 +33,10 @@ void UnfairPongApp::setup() {
 void UnfairPongApp::update() {
     // no point to update if game hasnt started yet
 
+    if (unfair_pong_instance.UserWon() || unfair_pong_instance.CpuWon()) {
+        return;
+    }
+
     if (unfair_pong_instance.IsDifficultySelected() && unfair_pong_instance.IsRoundRunning()) {
         unfair_pong_instance.UpdateBall();
         unfair_pong_instance.UpdateUserBumper();
@@ -55,20 +59,34 @@ void UnfairPongApp::draw() {
     ci::gl::drawStringCentered("Unfair Pong",
                                vec2(window_length_ / 2.0, 30),
                                ci::Color("black"), ci::Font("Helvetica", 30));
-    ci::gl::drawStringCentered("Press: 1 for easy, 2 for medium, 3 for hard, 4 for unfair",
-                               vec2(window_length_ / 2.0, 65),
-                               ci::Color("black"), ci::Font("Helvetica", 15));
 
+    cinder::gl::Texture2dRef texture = cinder::gl::Texture2d::create
+            (cinder::loadImage("../../../data/angry.png"));
+
+    ci::gl::draw(texture, vec2(window_length_ / 2.0 + 60, 10));
+
+    // prompt user to pick difficulty if not selected yet
     if (!unfair_pong_instance.IsDifficultySelected()) {
-        ci::gl::drawStringCentered("Please select your difficulty using 1, 2, 3, 4",
+        ci::gl::drawStringCentered("Press: 1 for easy, 2 for medium, 3 for hard, 4 for unfair",
                                    vec2(window_length_ / 2.0, 150),
-                                   ci::Color("black"), ci::Font("Helvetica", 30));
+                                   ci::Color("black"), ci::Font("Helvetica", 15));
     }
 
-    if (unfair_pong_instance.IsDifficultySelected() && !unfair_pong_instance.IsRoundRunning()) {
+    // start round message (or win screen if someone has won)
+    if (unfair_pong_instance.CpuWon()) {
+        ci::gl::drawStringCentered("CPU wins!",
+                                   vec2(window_length_ / 2.0, 150),
+                                   ci::Color("black"), ci::Font("Helvetica", 15));
+    }
+    else if (unfair_pong_instance.UserWon()) {
+        ci::gl::drawStringCentered("You win!",
+                                   vec2(window_length_ / 2.0, 150),
+                                   ci::Color("black"), ci::Font("Helvetica", 15));
+    }
+    else if (unfair_pong_instance.IsDifficultySelected() && !unfair_pong_instance.IsRoundRunning()) {
         ci::gl::drawStringCentered("Press SPACE to start round",
                                    vec2(window_length_ / 2.0, 150),
-                                   ci::Color("black"), ci::Font("Helvetica", 30));
+                                   ci::Color("black"), ci::Font("Helvetica", 15));
     }
 }
 

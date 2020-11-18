@@ -45,6 +45,8 @@ class Game {
      */
     static double Game::GenerateRandomDouble(double absolute_value_limit);
 
+    static double Game::GenerateRandomDoubleBetween(double lb, double ub);
+
     /**
      * We use this getter for arrow controls.
      */
@@ -53,6 +55,10 @@ class Game {
     bool IsDifficultySelected();
 
     bool IsRoundRunning();
+
+    bool UserWon();
+
+    bool CpuWon();
 
     /**
      * This handles mouse movements from a MouseDown event in the cinder app
@@ -107,11 +113,13 @@ class Game {
     double bottom_wall_;
     double right_wall_;
 
-
+    // these variables deal with game state
     bool is_difficulty_selected_;
     bool is_round_running_;
     size_t user_score_;
     size_t cpu_score_;
+    bool user_won_;
+    bool cpu_won_;
 
 
     Ball ball_in_play;

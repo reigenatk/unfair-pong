@@ -20,6 +20,10 @@ namespace unfairpong {
         horizontal_velocity_of_bumper = 0;
         left_wall_ = left_wall;
         right_wall_ = right_wall;
+
+        // this value is basically how sensitive bumper is to left or right keys
+        // not sure which one is best so I just left it here
+        bumper_sensitivity_ = 3.0;
     }
 
     double UserBumper::GetBumperThickness() {
@@ -69,22 +73,27 @@ namespace unfairpong {
         else {
             center_position_.x += horizontal_velocity_of_bumper;
         }
+
+        // I slowly decrease the velocity over time so that if the user stops holding the left or right keys
+        // then bumper eventually stops
+        float velocity_decay = 0.05f;
+
         if (abs(horizontal_velocity_of_bumper) != 0) {
             if (horizontal_velocity_of_bumper < 0) {
-                horizontal_velocity_of_bumper = fmin(0.0f, horizontal_velocity_of_bumper + 0.05f);
+                horizontal_velocity_of_bumper = fmin(0.0f, horizontal_velocity_of_bumper + velocity_decay);
             }
             else if (horizontal_velocity_of_bumper > 0) {
-                horizontal_velocity_of_bumper = fmax(0.0f, horizontal_velocity_of_bumper - 0.05f);
+                horizontal_velocity_of_bumper = fmax(0.0f, horizontal_velocity_of_bumper - velocity_decay);
             }
         }
     }
 
     void UserBumper::MoveBumperLeft() {
-        horizontal_velocity_of_bumper -= 3.0;
+        horizontal_velocity_of_bumper -= bumper_sensitivity_;
     }
 
     void UserBumper::MoveBumperRight() {
-        horizontal_velocity_of_bumper += 3.0;
+        horizontal_velocity_of_bumper += bumper_sensitivity_;
     }
 
 }

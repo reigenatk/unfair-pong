@@ -71,7 +71,8 @@ namespace visualizer {
 
         user_score_ = 0;
         cpu_score_ = 0;
-
+        user_won_ = false;
+        cpu_won_ = false;
 
     }
 
@@ -83,8 +84,27 @@ namespace visualizer {
         return is_round_running_;
     }
 
+    bool Game::UserWon() {
+        return user_won_;
+    }
+
+    bool Game::CpuWon() {
+        return cpu_won_;
+    }
+
     double Game::GenerateRandomDouble(double absolute_value_limit) {
         std::uniform_real_distribution<double> dist1(-absolute_value_limit, absolute_value_limit);
+
+        //Mersenne Twister: Good quality random number generator
+        std::mt19937 rng;
+        //Initialize with non-deterministic seeds
+        rng.seed(std::random_device{}());
+
+        return dist1(rng);
+    }
+
+    double Game::GenerateRandomDoubleBetween(double lb, double ub) {
+        std::uniform_real_distribution<double> dist1(lb, ub);
 
         //Mersenne Twister: Good quality random number generator
         std::mt19937 rng;
@@ -196,21 +216,28 @@ namespace visualizer {
     }
 
     void Game::SetupNewRound() {
+        // I need this value to be relatively large or else at high ball velocities, the game will mistakenly think
+        // that a user scored because the paddle isn't large enough to collide with ball in time
+        double thickness_of_bumper = 15;
+
         user_bumper_ = UserBumper(vec2((left_wall_ + right_wall_) / 2.0, bottom_wall_),
                                   user_bumper_length_, color_of_user_bumper_,
-                                  10, (float) left_wall_, (float) right_wall_);
+                                  thickness_of_bumper, (float) left_wall_, (float) right_wall_);
         cpu_bumper_ = CpuBumper(vec2((left_wall_ + right_wall_) / 2.0, top_wall_), cpu_bumper_length_,
-                                color_of_cpu_bumper_, 10, max_cpu_velocity_, float(left_wall_), (float) right_wall_);
+                                color_of_cpu_bumper_, thickness_of_bumper, max_cpu_velocity_, float(left_wall_), (float) right_wall_);
 
         // don't want the velocity to start really low by chance
         // (because user would have to wait a long time for it to bounce to other side)
-        // so put a lower bound on the starting velocity and keep rolling randomly until we get a "fast enough" one
+        // What below while loop does is essentially generate value between (3, starting_cap)
 
         double velocity_lower_bound = 3;
-        vec2 random_velocity = vec2(0, 0);
-        while (length(random_velocity) < velocity_lower_bound) {
-            random_velocity = vec2(GenerateRandomDouble(starting_ball_velocity_cap_), GenerateRandomDouble(starting_ball_velocity_cap_));
-        }
+
+        double starting_speed_of_ball = GenerateRandomDoubleBetween(velocity_lower_bound, starting_ball_velocity_cap_);
+
+        // now generate some random velocity with this speed and send it towards the CPU to begin with
+        // so user has time to react
+        vec2 random_velocity = RandomVelocityGivenSpeed(starting_speed_of_ball, false);
+
         ball_in_play = Ball(vec2((left_wall_ + right_wall_) / 2.0, (top_wall_+bottom_wall_) / 2.0),
                             random_velocity, color_of_ball_, radius_of_ball_);
 
@@ -226,13 +253,25 @@ namespace visualizer {
             // CPU scored
             cpu_score_++;
             is_round_running_ = false;
-            SetupNewRound();
+
+            if (cpu_score_ == points_to_win_) {
+                cpu_won_ = true;
+            }
+            else {
+                SetupNewRound();
+            }
         }
         else if (current_ball_position.y < top_wall_) {
             // User scored
             user_score_++;
             is_round_running_ = false;
-            SetupNewRound();
+
+            if (user_score_ == points_to_win_) {
+                user_won_ = true;
+            }
+            else {
+                SetupNewRound();
+            }
         }
     }
 

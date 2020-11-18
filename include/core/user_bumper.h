@@ -18,6 +18,7 @@ namespace unfairpong {
         /**
          * This method is used when being controlled with arrow keys- if the bumper has a velocity
          * then we need to update its new position. Method is called in the update() function
+         * Using mouse is a different story though because we don't use velocity in mouse controls
          */
         void ExecuteTimeStep();
         /**
@@ -46,6 +47,7 @@ namespace unfairpong {
         // these member variables are common between user and cpu bumper
         vec2 center_position_;
         double length_of_bumper_;
+        float bumper_sensitivity_;
         cinder::Color bumper_color_;
         double thickness_of_bumper_;
         float left_wall_;
