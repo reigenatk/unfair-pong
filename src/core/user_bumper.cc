@@ -55,10 +55,6 @@ namespace unfairpong {
         vec2 bottom_right_corner = center_position_ + vec2(length_of_bumper_ / 2.0, 0);
         ci::Rectf pixel_bounding_box(top_left_corner_, bottom_right_corner);
         ci::gl::drawSolidRect(pixel_bounding_box);
-
-        ci::gl::drawStringCentered("bumper velocity: " + std::to_string(horizontal_velocity_of_bumper),
-                                  vec2(100, 10),
-                                  ci::Color("black"), ci::Font("Helvetica", 15));
     }
 
     void UserBumper::ExecuteTimeStep() {

@@ -24,7 +24,7 @@ namespace visualizer {
         return user_bumper_;
     }
 
-    void Game::SelectDifficultyAndStart(string difficulty) {
+    void Game::SelectDifficulty(string difficulty) {
         string path = "../../../data/";
         path += difficulty;
         path += ".json";
@@ -53,7 +53,149 @@ namespace visualizer {
 
         // now create all the objects and set game to running, now that we have selected a difficulty!
 
-        is_game_running_ = true;
+        is_difficulty_selected_ = true;
+
+        SetupNewRound();
+    }
+
+    Game::Game(vec2 top_left, double length, double height) {
+        top_left_corner_ = top_left;
+        length_ = length;
+        height_ = height;
+        bottom_wall_ = top_left_corner_.y + height;
+        right_wall_ = top_left_corner_.x + length;
+        top_wall_ = top_left_corner_.y;
+        left_wall_ = top_left_corner_.x;
+        is_round_running_ = false;
+        is_difficulty_selected_ = false;
+
+        user_score_ = 0;
+        cpu_score_ = 0;
+
+
+    }
+
+    bool Game::IsDifficultySelected() {
+        return is_difficulty_selected_;
+    }
+
+    bool Game::IsRoundRunning() {
+        return is_round_running_;
+    }
+
+    double Game::GenerateRandomDouble(double absolute_value_limit) {
+        std::uniform_real_distribution<double> dist1(-absolute_value_limit, absolute_value_limit);
+
+        //Mersenne Twister: Good quality random number generator
+        std::mt19937 rng;
+        //Initialize with non-deterministic seeds
+        rng.seed(std::random_device{}());
+
+        return dist1(rng);
+    }
+
+    vec2 Game::RandomVelocityGivenSpeed(double speed_desired, bool positive_y_velocity) {
+        double new_y_vel;
+        double new_x_vel;
+
+        // this value dictates that the y-velocities of randomly generated velocities must all be LARGER
+        // than this value. The reason I added this is because I can genereate a velocity like (5, 0.1) which will take
+        // forever to bounce to the opposing bumper, since walls do not affect y-velocity.
+        // and that is bad user experience since they need to wait really long
+        double y_velocity_lower_bound = 3;
+
+        if (positive_y_velocity) {
+            new_y_vel = GenerateRandomDouble(speed_desired);
+            while (abs(new_y_vel) < y_velocity_lower_bound) {
+                new_y_vel = GenerateRandomDouble(speed_desired);
+            }
+            if (new_y_vel < 0) {
+                new_y_vel = -new_y_vel;
+            }
+            double remaining_magnitude = sqrt(pow(speed_desired, 2) - pow(new_y_vel, 2));
+
+            // flip a coin to see if we get positive or negative x-vel
+            double is_x_vel_positive = GenerateRandomDouble(1);
+            if (is_x_vel_positive > 0.5) {
+                new_x_vel = remaining_magnitude;
+            }
+            else {
+                new_x_vel = -remaining_magnitude;
+            }
+        }
+        else {
+            new_y_vel = GenerateRandomDouble(speed_desired);
+            while (abs(new_y_vel) < y_velocity_lower_bound) {
+                new_y_vel = GenerateRandomDouble(speed_desired);
+            }
+            if (new_y_vel > 0) {
+                new_y_vel = -new_y_vel;
+            }
+            double remaining_magnitude = sqrt(pow(speed_desired, 2) - pow(new_y_vel, 2));
+
+            double is_x_vel_positive = GenerateRandomDouble(1);
+            if (is_x_vel_positive > 0.5) {
+                new_x_vel = remaining_magnitude;
+            }
+            else {
+                new_x_vel = -remaining_magnitude;
+            }
+
+        }
+        return vec2(new_x_vel, new_y_vel);
+    }
+
+    void Game::HandleMouseMovement(const vec2 &mouse_coords) {
+        user_bumper_.SteerBumperWithMouse(mouse_coords);
+    }
+
+    void Game::DrawInstructions() {
+        ci::gl::drawStringCentered("Control with arrow keys OR dragging mouse",
+                                   vec2((left_wall_ + right_wall_) / 2.0, bottom_wall_ + 20),
+                                   ci::Color("black"), ci::Font("Helvetica", 15));
+    }
+
+    void Game::DrawScore() {
+        vec2 ball_center_1 = vec2(right_wall_, bottom_wall_);
+        ball_center_1 += vec2(radius_of_ball_, -radius_of_ball_);
+        float gap = 1;
+        ball_center_1 += vec2(gap, 0);
+
+        for (size_t i = 0; i < user_score_; i++) {
+            ci::gl::color(color_of_ball_);
+            ci::gl::drawSolidCircle(ball_center_1, radius_of_ball_);
+            ball_center_1 += vec2(0, -radius_of_ball_*2 - gap);
+        }
+
+        vec2 ball_center_2 = vec2(right_wall_, top_wall_);
+        ball_center_2 += vec2(radius_of_ball_, -radius_of_ball_);
+        ball_center_2 += vec2(gap, 0);
+
+        for (size_t i = 0; i < cpu_score_; i++) {
+            ci::gl::color(color_of_ball_);
+            ci::gl::drawSolidCircle(ball_center_2, radius_of_ball_);
+            ball_center_2 += vec2(0, radius_of_ball_*2 + gap);
+        }
+    }
+
+    void Game::Draw() {
+        DrawInstructions();
+
+        // boundaries
+        vec2 bottom_right_corner = top_left_corner_ + vec2(length_, height_);
+        ci::gl::color(ci::Color("black"));
+        ci::Rectf pixel_bounding_box(top_left_corner_, bottom_right_corner);
+        ci::gl::drawStrokedRect(pixel_bounding_box);
+
+        DrawScore();
+
+        cpu_bumper_.Draw();
+        user_bumper_.Draw();
+        ball_in_play.Draw();
+
+    }
+
+    void Game::SetupNewRound() {
         user_bumper_ = UserBumper(vec2((left_wall_ + right_wall_) / 2.0, bottom_wall_),
                                   user_bumper_length_, color_of_user_bumper_,
                                   10, (float) left_wall_, (float) right_wall_);
@@ -71,122 +213,26 @@ namespace visualizer {
         }
         ball_in_play = Ball(vec2((left_wall_ + right_wall_) / 2.0, (top_wall_+bottom_wall_) / 2.0),
                             random_velocity, color_of_ball_, radius_of_ball_);
-    }
-
-    Game::Game(vec2 top_left, double length, double height) {
-        top_left_corner_ = top_left;
-        length_ = length;
-        height_ = height;
-        bottom_wall_ = top_left_corner_.y + height;
-        right_wall_ = top_left_corner_.x + length;
-        top_wall_ = top_left_corner_.y;
-        left_wall_ = top_left_corner_.x;
-        is_round_running_ = false;
-
-        user_score_ = 0;
-        cpu_score_ = 0;
-
 
     }
 
-    bool Game::IsGameRunning() {
-        return is_game_running_;
-    }
-
-    double Game::GenerateRandomDouble(double absolute_value_limit) {
-        std::uniform_real_distribution<double> dist1(-absolute_value_limit, absolute_value_limit);
-
-        //Mersenne Twister: Good quality random number generator
-        std::mt19937 rng;
-        //Initialize with non-deterministic seeds
-        rng.seed(std::random_device{}());
-
-        return dist1(rng);
-    }
-
-    vec2 Game::RandomVelocityGivenSpeed(double speed_desired, bool positive_y_velocity) {
-        double new_y_vel;
-        double new_x_vel;
-        if (positive_y_velocity) {
-            new_y_vel = GenerateRandomDouble(speed_desired);
-            if (new_y_vel < 0) {
-                new_y_vel = -new_y_vel;
-            }
-            double remaining_magnitude = sqrt(pow(speed_desired, 2) - pow(new_y_vel, 2));
-
-            double is_x_vel_positive = GenerateRandomDouble(1);
-            if (is_x_vel_positive > 0.5) {
-                new_x_vel = remaining_magnitude;
-            }
-            else {
-                new_x_vel = -remaining_magnitude;
-            }
-        }
-        else {
-            new_y_vel = GenerateRandomDouble(speed_desired);
-            if (new_y_vel > 0) {
-                new_y_vel = -new_y_vel;
-            }
-            double remaining_magnitude = sqrt(pow(speed_desired, 2) - pow(new_y_vel, 2));
-            double is_x_vel_positive = GenerateRandomDouble(1);
-            if (is_x_vel_positive > 0.5) {
-                new_x_vel = remaining_magnitude;
-            }
-            else {
-                new_x_vel = -remaining_magnitude;
-            }
-
-        }
-        return vec2(new_x_vel, new_y_vel);
-    }
-
-    void Game::HandleMouseMovement(const vec2 &mouse_coords) {
-        user_bumper_.SteerBumperWithMouse(mouse_coords);
-    }
-
-    void Game::Draw() {
-        ci::gl::drawStringCentered("Control with arrow keys OR dragging mouse",
-                                   vec2((left_wall_ + right_wall_) / 2.0, bottom_wall_ + 20),
-                                   ci::Color("black"), ci::Font("Helvetica", 15));
-
-        ci::gl::drawStringCentered("Ball velocity" + std::to_string(length(ball_in_play.GetVelocity())),
-                                   vec2((left_wall_ + right_wall_) / 2.0, bottom_wall_ + 50),
-                                   ci::Color("black"), ci::Font("Helvetica", 15));
-
-        vec2 bottom_right_corner = top_left_corner_ + vec2(length_, height_);
-        ci::gl::color(ci::Color("black"));
-        ci::Rectf pixel_bounding_box(top_left_corner_, bottom_right_corner);
-        ci::gl::drawStrokedRect(pixel_bounding_box);
-
-        cpu_bumper_.Draw();
-        user_bumper_.Draw();
-        ball_in_play.Draw();
-
-    }
-
-    void Game::GameReset() {
-        // reset bumpers into original positions
-        user_bumper_ = UserBumper(vec2((left_wall_ + right_wall_) / 2.0, bottom_wall_),
-                                  100, cinder::Color(1, 0, 0),
-                                  10, (float) left_wall_, (float) right_wall_);
-        cpu_bumper_ = CpuBumper(vec2((left_wall_ + right_wall_) / 2.0, top_wall_), 100,
-                                cinder::Color(0, 1, 0), 10, 10, float(left_wall_), (float) right_wall_);
-
-        vec2 random_velocity = vec2(GenerateRandomDouble(starting_ball_velocity_cap_), GenerateRandomDouble(starting_ball_velocity_cap_));
-        ball_in_play = Ball(vec2((left_wall_ + right_wall_) / 2.0, (top_wall_+bottom_wall_) / 2.0),
-                            random_velocity, cinder::Color(0, 0, 1), 5);
+    void Game::StartNewRound() {
+        is_round_running_ = true;
     }
 
     void Game::CheckIfPlayerScored() {
         vec2& current_ball_position = ball_in_play.GetPosition();
-        if (abs(current_ball_position.y - bottom_wall_) < ball_in_play.GetRadius()) {
+        if (current_ball_position.y > bottom_wall_) {
             // CPU scored
             cpu_score_++;
-
+            is_round_running_ = false;
+            SetupNewRound();
         }
-        else if (abs(current_ball_position.y - top_wall_) < ball_in_play.GetRadius()) {
+        else if (current_ball_position.y < top_wall_) {
             // User scored
             user_score_++;
+            is_round_running_ = false;
+            SetupNewRound();
         }
     }
 

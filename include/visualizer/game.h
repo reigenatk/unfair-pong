@@ -32,9 +32,13 @@ class Game {
      * According to what was in the JSON file for the selected difficulty
      * After being deserialized it will also start the game by setting is_game_running = true
      */
-    void SelectDifficultyAndStart(std::string difficulty);
+    void SelectDifficulty(std::string difficulty);
 
     void Draw();
+
+    void DrawInstructions();
+
+    void DrawScore();
 
     /**
      * Generates random double between -param and param
@@ -46,7 +50,9 @@ class Game {
      */
     UserBumper& GetUserBumper();
 
-    bool IsGameRunning();
+    bool IsDifficultySelected();
+
+    bool IsRoundRunning();
 
     /**
      * This handles mouse movements from a MouseDown event in the cinder app
@@ -70,7 +76,9 @@ class Game {
      */
     vec2 RandomVelocityGivenSpeed(double speed_desired, bool positive_y_velocity);
 
-    void GameReset();
+    void SetupNewRound();
+
+    void StartNewRound();
 
     /**
      * This method will update the location of the ball during one time step
@@ -100,7 +108,7 @@ class Game {
     double right_wall_;
 
 
-    bool is_game_running_;
+    bool is_difficulty_selected_;
     bool is_round_running_;
     size_t user_score_;
     size_t cpu_score_;
@@ -110,7 +118,7 @@ class Game {
     CpuBumper cpu_bumper_;
     UserBumper user_bumper_;
 
-    double radius_of_ball_;
+    float radius_of_ball_;
     size_t points_to_win_;
     cinder::Color color_of_ball_;
     cinder::Color color_of_user_bumper_;
