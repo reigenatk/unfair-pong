@@ -18,7 +18,8 @@ UnfairPongApp::UnfairPongApp() {
 }
 
 void UnfairPongApp::setup() {
-    // configure everything in json files and set the file here!
+    // set the window sizes but do not configure the game settings until user selects difficulty
+    // using arrow keys
 
     ci::app::setWindowSize((int) window_length_, (int) window_height_);
     unfair_pong_instance = Game(vec2(100, 100), 600, 600);
@@ -27,14 +28,18 @@ void UnfairPongApp::setup() {
 }
 
 void UnfairPongApp::update() {
-    unfair_pong_instance.UpdateBall();
-    unfair_pong_instance.UpdateUserBumper();
-    unfair_pong_instance.UpdateCpuBumper();
+    // no point to update if game hasnt started yet
 
-    unfair_pong_instance.CheckIfPlayerScored();
-    unfair_pong_instance.ExecuteBallWallCollision();
-    unfair_pong_instance.ExecuteBallUserBumperCollision();
-    unfair_pong_instance.ExecuteBallCpuBumperCollision();
+    if (unfair_pong_instance.IsGameRunning()) {
+        unfair_pong_instance.UpdateBall();
+        unfair_pong_instance.UpdateUserBumper();
+        unfair_pong_instance.UpdateCpuBumper();
+
+        unfair_pong_instance.CheckIfPlayerScored();
+        unfair_pong_instance.ExecuteBallWallCollision();
+        unfair_pong_instance.ExecuteBallUserBumperCollision();
+        unfair_pong_instance.ExecuteBallCpuBumperCollision();
+    }
 }
 
 void UnfairPongApp::draw() {
@@ -52,23 +57,30 @@ void UnfairPongApp::draw() {
 }
 
 void UnfairPongApp::mouseDown(ci::app::MouseEvent event) {
-    unfair_pong_instance.HandleMovement(event.getPos());
+    unfair_pong_instance.HandleMouseMovement(event.getPos());
 }
 
 void UnfairPongApp::mouseDrag(ci::app::MouseEvent event) {
-    unfair_pong_instance.HandleMovement(event.getPos());
+    unfair_pong_instance.HandleMouseMovement(event.getPos());
 }
 
 void UnfairPongApp::keyDown(ci::app::KeyEvent event) {
     switch (event.getCode()) {
         case ci::app::KeyEvent::KEY_1: {
-
+            unfair_pong_instance.SelectDifficultyAndStart("easy");
+            break;
         }
         case ci::app::KeyEvent::KEY_2: {
-
+            unfair_pong_instance.SelectDifficultyAndStart("medium");
+            break;
         }
         case ci::app::KeyEvent::KEY_3: {
-
+            unfair_pong_instance.SelectDifficultyAndStart("hard");
+            break;
+        }
+        case ci::app::KeyEvent::KEY_4: {
+            unfair_pong_instance.SelectDifficultyAndStart("unfair");
+            break;
         }
         case ci::app::KeyEvent::KEY_RIGHT: {
             unfair_pong_instance.GetUserBumper().MoveBumperRight();

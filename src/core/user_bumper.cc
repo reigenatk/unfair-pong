@@ -34,7 +34,10 @@ namespace unfairpong {
         return length_of_bumper_;
     }
 
-    void UserBumper::SetBumperCenter(const vec2 &mouse_coords) {
+    void UserBumper::SteerBumperWithMouse(const vec2 &mouse_coords) {
+        // also do a reset on the velocity here- otherwise bumper will keep moving
+        // after clicking down
+        horizontal_velocity_of_bumper = 0;
         if (mouse_coords.x < left_wall_ + (float) (length_of_bumper_ / 2.0)) {
             center_position_.x = left_wall_ + (float) (length_of_bumper_ / 2.0);
         }
