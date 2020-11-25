@@ -361,7 +361,10 @@ void Game::ExecuteBallUserBumperCollision() {
     // if intersecting
     if (abs(current_ball_position.y - GetBottomWallY()) < bumper_thickness + (float) (ball_radius / 2.0) &&
                             abs(current_ball_position.x - bumper_center.x) < (float) (bumper_length / 2.0)) {
-        ball_in_play.CollideWithUserBumper();
+        ball_in_play.CollideWithUserBumper(bumper_center,
+                                           (float) GetLeftWallX(),
+                                           (float) GetRightWallX(),
+                                           (float) GetTopWallY());
     }
 }
 
@@ -375,7 +378,9 @@ void Game::ExecuteBallCpuBumperCollision() {
 
     if (abs(current_ball_position.y - GetTopWallY()) < bumper_thickness + (float) (ball_radius / 2.0) &&
         abs(current_ball_position.x - bumper_center.x) < (float) (bumper_length / 2.0)) {
-        ball_in_play.CollideWithCpuBumper();
+        ball_in_play.CollideWithCpuBumper(bumper_center, (float) GetLeftWallX(),
+                                          (float) GetRightWallX(),
+                                          (float) GetBottomWallY());
     }
 }
 

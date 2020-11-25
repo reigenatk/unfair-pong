@@ -28,8 +28,15 @@ class Ball {
     void UpdatePositionWithVelocity();
     void ChangeIntoRandomColor();
 
-    void CollideWithUserBumper();
-    void CollideWithCpuBumper();
+    // these methods decide the new velocities of the ball upon cpu and user collision
+    void CollideWithUserBumper(vec2 center_of_user_bumper, float left_wall_x, float right_wall_x, float top_wall_y);
+    void CollideWithCpuBumper(vec2 center_of_user_bumper, float left_wall_x, float right_wall_x, float bottom_wall_y);
+
+    /**
+     * Given a target position for the ball to hit as a vec2 and a desired speed to travel towards it at
+     * Generate a vector that meets both requirements
+     */
+    vec2 VelocityGivenTargetAndSpeed(vec2 target_pos, double desired_velocity_of_ball);
 
     /**
      * Resets the ball to a certain position, need to call this after each round ends
@@ -41,9 +48,20 @@ class Ball {
     vec2 velocity_;
     cinder::Color color_; // a vector of three doubles for r, g, b
     double radius_;
+
+    // a smash ball goes adds more velocity than usual onto the ball
+    // it also does NOT collide with a wall, instead travels straight towards the goal
+    double smash_velocity_increase;
     double user_smash_rate_;
     double cpu_smash_rate_;
+    bool is_smash_ball;
+
+    // how much faster the ball gets with each consecutive bumper collision
     double difficulty_increment_;
+
+    // the fastest a ball can travel, need this because once the ball starts going too fast
+    // collisions stop working
+    float max_ball_velocity;
 
 };
 
