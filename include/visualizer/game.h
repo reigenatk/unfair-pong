@@ -75,6 +75,8 @@ class Game {
 
     void CheckIfPlayerScored();
 
+    void UpdateAll();
+
     /**
      * These three methods will check for collisions and if there are any, execute them
      */

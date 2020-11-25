@@ -38,15 +38,7 @@ void UnfairPongApp::update() {
 
     // if game has started and a round is running, update
     if (unfair_pong_instance.IsDifficultySelected() && unfair_pong_instance.IsRoundRunning()) {
-        unfair_pong_instance.UpdateBall();
-        unfair_pong_instance.UpdateUserBumper();
-        unfair_pong_instance.UpdateCpuBumper();
-
-        unfair_pong_instance.CheckIfPlayerScored();
-
-        unfair_pong_instance.ExecuteBallWallCollision();
-        unfair_pong_instance.ExecuteBallUserBumperCollision();
-        unfair_pong_instance.ExecuteBallCpuBumperCollision();
+        unfair_pong_instance.UpdateAll();
     }
 }
 
