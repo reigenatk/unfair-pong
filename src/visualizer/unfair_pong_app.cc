@@ -48,12 +48,17 @@ void UnfairPongApp::draw() {
     ci::gl::clear(background_color);
     unfair_pong_instance.Draw();
 
+    ci::gl::drawStringCentered(std::to_string(length(unfair_pong_instance.GetBall().GetVelocity())),
+                               vec2(50, 10),
+                               ci::Color("black"), ci::Font("Helvetica", 30));
+
     ci::gl::drawStringCentered("Unfair Pong",
                                vec2(window_length_ / 2.0, 30),
                                ci::Color("black"), ci::Font("Helvetica", 30));
 
+    ci::gl::color(ci::Color("white"));
     cinder::gl::Texture2dRef texture = cinder::gl::Texture2d::create
-            (cinder::loadImage("../../../data/angry.png"));
+            (cinder::loadImage("../../../data/whygodwhy.png"));
 
     ci::gl::draw(texture, vec2(window_length_ / 2.0 + 60, 10));
 

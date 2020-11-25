@@ -48,12 +48,26 @@ class Game {
 
     double GetBottomWallY();
 
+    Ball GetBall();
+
     /**
      * Generates random double between -param and param
      */
     static double Game::GenerateRandomDouble(double absolute_value_limit);
 
     static double Game::GenerateRandomDoubleBetween(double lb, double ub);
+
+    /**
+    * Returns true or false. Use this to determine chances of obtaining certain powerups
+    * @param chance- the chance of returning true
+    */
+    static bool RollChance(double chance);
+
+    /**
+     * This method returns a random vec2 velocity given a bound on the speed, and a specification of whether
+     * the y-velocity generated should be positive or negative
+     */
+    static vec2 RandomVelocityGivenSpeed(double speed_desired, bool positive_y_velocity);
 
     /**
      * We use this getter for arrow controls.
@@ -85,12 +99,6 @@ class Game {
     void ExecuteBallUserBumperCollision();
 
     void ExecuteBallCpuBumperCollision();
-
-    /**
-     * This method returns a random vec2 velocity given a bound on the speed, and a specification of whether
-     * the y-velocity generated should be positive or negative
-     */
-    vec2 RandomVelocityGivenSpeed(double speed_desired, bool positive_y_velocity);
 
     void SetupNewRound();
 
@@ -130,7 +138,6 @@ class Game {
     UserBumper user_bumper_;
 
     size_t points_to_win_;
-    double difficulty_increment_;
     double starting_ball_velocity_floor_;
     double starting_ball_velocity_cap_;
 

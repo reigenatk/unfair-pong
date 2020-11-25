@@ -38,9 +38,14 @@ void Game::SelectDifficulty(string difficulty) {
     cinder::Color color_of_user_bumper_;
     cinder::Color color_of_cpu_bumper_;
     float max_cpu_velocity_;
+    double difficulty_increment_;
 
     double user_bumper_length_;
     double cpu_bumper_length_;
+
+    // powerups
+    double user_smash_rate;
+    double cpu_smash_rate;
 
     radius_of_ball_ = j["radius_of_ball_"];
     points_to_win_ = j["points_to_win_"];
@@ -62,13 +67,16 @@ void Game::SelectDifficulty(string difficulty) {
     user_bumper_length_ = j["user_bumper_length_"];
     cpu_bumper_length_ = j["cpu_bumper_length_"];
 
+    user_smash_rate = j["user_smash_rate"];
+    cpu_smash_rate = j["cpu_smash_rate"];
+
     // now create all the objects and set game to running, now that we have selected a difficulty!
 
     is_difficulty_selected_ = true;
 
     // I need this value to be relatively large or else at high ball velocities, the game will mistakenly think
     // that a user scored because the paddle isn't large enough to collide with ball in time
-    double thickness_of_bumper = 15;
+    double thickness_of_bumper = 20;
 
     user_bumper_ = UserBumper(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetBottomWallY()),
                               user_bumper_length_, color_of_user_bumper_,
@@ -84,7 +92,7 @@ void Game::SelectDifficulty(string difficulty) {
     vec2 random_velocity = RandomVelocityGivenSpeed(starting_speed_of_ball, false);
 
     ball_in_play = Ball(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, (GetTopWallY() + GetBottomWallY()) / 2.0),
-                        random_velocity, color_of_ball_, radius_of_ball_);
+                        random_velocity, color_of_ball_, radius_of_ball_, user_smash_rate, cpu_smash_rate, difficulty_increment_);
 }
 
 Game::Game(vec2 top_left, double length, double height) {
@@ -141,6 +149,10 @@ double Game::GetBottomWallY() {
 
 double Game::GetTopWallY() {
     return top_left_corner_.y;
+}
+
+Ball Game::GetBall() {
+    return ball_in_play;
 }
 
 double Game::GenerateRandomDouble(double absolute_value_limit) {
@@ -269,13 +281,16 @@ void Game::Draw() {
 
 }
 
+bool Game::RollChance(double chance) {
+    double d = GenerateRandomDoubleBetween(0, 1);
+    return d < chance;
+}
+
 void Game::SetupNewRound() {
 
     double starting_speed_of_ball = GenerateRandomDoubleBetween(starting_ball_velocity_floor_, starting_ball_velocity_cap_);
-
-    // now generate some random velocity with this speed and send it towards the CPU to begin with
-    // so user has time to react
     vec2 random_velocity = RandomVelocityGivenSpeed(starting_speed_of_ball, false);
+
     ball_in_play.ResetForNewRound(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, (GetTopWallY() + GetBottomWallY()) / 2.0), random_velocity);
     cpu_bumper_.ResetForNewRound(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetTopWallY()));
     user_bumper_.ResetForNewRound(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetBottomWallY()));
@@ -338,28 +353,29 @@ void Game::UpdateCpuBumper() {
 void Game::ExecuteBallUserBumperCollision() {
     vec2& current_ball_position = ball_in_play.GetPosition();
     vec2& current_ball_velocity = ball_in_play.GetVelocity();
+    double ball_radius = ball_in_play.GetRadius();
     double bumper_thickness = user_bumper_.GetBumperThickness();
     double bumper_length = user_bumper_.GetBumperLength();
     vec2& bumper_center = user_bumper_.GetBumperCenter();
 
-    // if it intersects with the vertical height of our bumper
-    // as well as in the range of our bumper length then it must be intersecting
-    if (abs(current_ball_position.y - GetBottomWallY()) < bumper_thickness &&
+    // if intersecting
+    if (abs(current_ball_position.y - GetBottomWallY()) < bumper_thickness + (float) (ball_radius / 2.0) &&
                             abs(current_ball_position.x - bumper_center.x) < (float) (bumper_length / 2.0)) {
-        current_ball_velocity = RandomVelocityGivenSpeed(length(current_ball_velocity) + difficulty_increment_, false);
+        ball_in_play.CollideWithUserBumper();
     }
 }
 
 void Game::ExecuteBallCpuBumperCollision() {
     vec2& current_ball_position = ball_in_play.GetPosition();
     vec2& current_ball_velocity = ball_in_play.GetVelocity();
+    double ball_radius = ball_in_play.GetRadius();
     double bumper_thickness = cpu_bumper_.GetBumperThickness();
     double bumper_length = cpu_bumper_.GetBumperLength();
     vec2& bumper_center = cpu_bumper_.GetBumperCenter();
 
-    if (abs(current_ball_position.y - GetTopWallY()) < bumper_thickness &&
+    if (abs(current_ball_position.y - GetTopWallY()) < bumper_thickness + (float) (ball_radius / 2.0) &&
         abs(current_ball_position.x - bumper_center.x) < (float) (bumper_length / 2.0)) {
-        current_ball_velocity = RandomVelocityGivenSpeed(length(current_ball_velocity) + difficulty_increment_, true);
+        ball_in_play.CollideWithCpuBumper();
     }
 }
 

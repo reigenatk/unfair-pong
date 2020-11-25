@@ -1,6 +1,5 @@
 #include <core/bumper.h>
 
-
 namespace unfairpong {
 
 Bumper::Bumper() {
@@ -30,6 +29,7 @@ double Bumper::GetBumperThickness() {
 
 void Bumper::ResetForNewRound(const vec2 &new_position) {
     center_position_ = new_position;
+
 }
 
 
