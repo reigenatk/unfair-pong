@@ -47,6 +47,7 @@ void Game::SelectDifficulty(string difficulty) {
     double user_smash_rate;
     double cpu_smash_rate;
     double cpu_dizzy_rate;
+    double cpu_monkey_rate;
 
     radius_of_ball_ = j["radius_of_ball_"];
     points_to_win_ = j["points_to_win_"];
@@ -72,6 +73,7 @@ void Game::SelectDifficulty(string difficulty) {
     cpu_smash_rate = j["cpu_smash_rate"];
 
     cpu_dizzy_rate = j["cpu_dizzy_rate"];
+    cpu_monkey_rate = j["cpu_monkey_rate"];
 
     // now create all the objects and set game to running, now that we have selected a difficulty!
 
@@ -95,7 +97,8 @@ void Game::SelectDifficulty(string difficulty) {
     vec2 random_velocity = RandomVelocityGivenSpeed(starting_speed_of_ball, false);
 
     ball_in_play = Ball(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, (GetTopWallY() + GetBottomWallY()) / 2.0),
-                        random_velocity, color_of_ball_, radius_of_ball_, user_smash_rate, cpu_smash_rate, cpu_dizzy_rate, difficulty_increment_);
+                        random_velocity, color_of_ball_, radius_of_ball_,
+                        user_smash_rate, cpu_smash_rate, cpu_dizzy_rate, cpu_monkey_rate, difficulty_increment_);
 }
 
 Game::Game(vec2 top_left, double length, double height) {
@@ -346,7 +349,7 @@ void Game::ExecuteBallWallCollision() {
 }
 
 void Game::UpdateBall() {
-    ball_in_play.UpdatePositionWithVelocity();
+    ball_in_play.UpdatePositionWithVelocity(user_bumper_.FartherCorner());
 }
 
 void Game::UpdateCpuBumper() {

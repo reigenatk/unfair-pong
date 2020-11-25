@@ -13,7 +13,8 @@ Ball::Ball() {
 }
 
 Ball::Ball(vec2 starting_position, vec2 starting_velocity, cinder::Color color,
-           double radius, double user_smash_rate, double cpu_smash_rate, double cpu_dizzy_rate, double difficulty_increment) {
+           double radius, double user_smash_rate, double cpu_smash_rate, double cpu_dizzy_rate,
+           double cpu_monkey_rate, double difficulty_increment) {
     position_ = starting_position;
     velocity_ = starting_velocity;
     color_ = color;
@@ -25,6 +26,7 @@ Ball::Ball(vec2 starting_position, vec2 starting_velocity, cinder::Color color,
     max_ball_velocity = 20; // can tweak this but I found 20 to work ok
     smash_velocity_increase_ = 10; // just how much faster does the ball get on a smash hit
     cpu_dizzy_rate_ = cpu_dizzy_rate;
+    cpu_monkey_rate_ = cpu_monkey_rate;
     ResetAllEffects();
 }
 
@@ -61,6 +63,7 @@ void Ball::ResetForNewRound(vec2 new_position, vec2 new_velocity) {
 void Ball::ResetAllEffects() {
     is_smash_ball_ = false;
     is_dizzy_ball_ = false;
+    is_monkey_ball_ = false;
 }
 
 vec2 Ball::VelocityGivenTargetAndSpeed(vec2 target_pos, double desired_velocity_of_ball) {
@@ -128,6 +131,11 @@ void Ball::CollideWithCpuBumper(vec2 center_of_cpu_bumper, float left_wall_x, fl
             ResetAllEffects();
             is_dizzy_ball_ = true;
         }
+        else if (Game::RollChance(cpu_monkey_rate_)) {
+            // if cpu gets monkey ball
+            ResetAllEffects();
+            is_monkey_ball_ = true;
+        }
         else {
             ResetAllEffects();
         }
@@ -150,16 +158,26 @@ void Ball::Draw() const {
                 (cinder::loadImage("../../../data/dizzy.png"));
         ci::gl::draw(texture, position_);
     }
+    else if (is_monkey_ball_) {
+        ci::gl::color(ci::Color("white"));
+        cinder::gl::Texture2dRef texture = cinder::gl::Texture2d::create
+                (cinder::loadImage("../../../data/monkey.png"));
+        ci::gl::draw(texture, position_);
+    }
     ci::gl::color(color_);
     ci::gl::drawSolidCircle(position_, (float) radius_);
 }
 
-void Ball::UpdatePositionWithVelocity() {
+void Ball::UpdatePositionWithVelocity(vec2 farther_user_corner) {
     position_ += velocity_;
 
     double dizziness = 1; // can adjust this, basically how much the ball wavers around
     if (is_dizzy_ball_) {
         velocity_ += vec2(Game::GenerateRandomDouble(dizziness), 0);
+    }
+
+    if (is_monkey_ball_) {
+        velocity_ = VelocityGivenTargetAndSpeed(farther_user_corner, length(velocity_));
     }
 }
 

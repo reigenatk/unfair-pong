@@ -65,6 +65,15 @@ void UserBumper::ExecuteTimeStep() {
     }
 }
 
+vec2 UserBumper::FartherCorner() {
+    if (center_position_.x - left_wall_ <= right_wall_ - center_position_.x) {
+        return vec2(right_wall_, center_position_.y);
+    }
+    else {
+        return vec2(left_wall_, center_position_.y);
+    }
+}
+
 void UserBumper::Draw() const {
     ci::gl::color(bumper_color_);
     vec2 top_left_corner_ = center_position_ + vec2(-length_of_bumper_ / 2.0, -thickness_of_bumper_);

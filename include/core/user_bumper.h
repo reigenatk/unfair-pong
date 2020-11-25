@@ -28,6 +28,7 @@ public:
      */
     void MoveBumperLeft();
     void MoveBumperRight();
+    vec2 FartherCorner();
 
 
     /**

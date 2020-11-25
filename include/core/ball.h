@@ -17,7 +17,7 @@ class Ball {
 
     Ball();
     Ball(vec2 starting_position, vec2 starting_velocity, cinder::Color color,
-         double radius, double user_smash_rate, double cpu_smash_rate, double cpu_dizzy_rate, double difficulty_increment);
+         double radius, double user_smash_rate, double cpu_smash_rate, double cpu_dizzy_rate, double cpu_monkey_rate, double difficulty_increment);
 
     vec2& GetPosition();
     vec2& GetVelocity();
@@ -25,7 +25,7 @@ class Ball {
     cinder::Color GetColor();
 
     void Draw() const;
-    void UpdatePositionWithVelocity();
+    void UpdatePositionWithVelocity(vec2 farther_user_corner);
     void ChangeIntoRandomColor();
 
     // these methods decide the new velocities of the ball upon cpu and user collision
@@ -59,6 +59,8 @@ class Ball {
     bool is_smash_ball_;
     double cpu_dizzy_rate_;
     bool is_dizzy_ball_;
+    double cpu_monkey_rate_;
+    bool is_monkey_ball_;
 
     // how much faster the ball gets with each consecutive bumper collision
     double difficulty_increment_;
