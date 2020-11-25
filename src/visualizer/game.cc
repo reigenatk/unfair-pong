@@ -43,9 +43,10 @@ void Game::SelectDifficulty(string difficulty) {
     double user_bumper_length_;
     double cpu_bumper_length_;
 
-    // powerups
+    // special balls
     double user_smash_rate;
     double cpu_smash_rate;
+    double cpu_dizzy_rate;
 
     radius_of_ball_ = j["radius_of_ball_"];
     points_to_win_ = j["points_to_win_"];
@@ -70,13 +71,15 @@ void Game::SelectDifficulty(string difficulty) {
     user_smash_rate = j["user_smash_rate"];
     cpu_smash_rate = j["cpu_smash_rate"];
 
+    cpu_dizzy_rate = j["cpu_dizzy_rate"];
+
     // now create all the objects and set game to running, now that we have selected a difficulty!
 
     is_difficulty_selected_ = true;
 
     // I need this value to be relatively large or else at high ball velocities, the game will mistakenly think
     // that a user scored because the paddle isn't large enough to collide with ball in time
-    double thickness_of_bumper = 20;
+    double thickness_of_bumper = 30;
 
     user_bumper_ = UserBumper(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetBottomWallY()),
                               user_bumper_length_, color_of_user_bumper_,
@@ -92,7 +95,7 @@ void Game::SelectDifficulty(string difficulty) {
     vec2 random_velocity = RandomVelocityGivenSpeed(starting_speed_of_ball, false);
 
     ball_in_play = Ball(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, (GetTopWallY() + GetBottomWallY()) / 2.0),
-                        random_velocity, color_of_ball_, radius_of_ball_, user_smash_rate, cpu_smash_rate, difficulty_increment_);
+                        random_velocity, color_of_ball_, radius_of_ball_, user_smash_rate, cpu_smash_rate, cpu_dizzy_rate, difficulty_increment_);
 }
 
 Game::Game(vec2 top_left, double length, double height) {

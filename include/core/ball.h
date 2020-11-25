@@ -17,7 +17,7 @@ class Ball {
 
     Ball();
     Ball(vec2 starting_position, vec2 starting_velocity, cinder::Color color,
-         double radius, double user_smash_rate, double cpu_smash_rate, double difficulty_increment);
+         double radius, double user_smash_rate, double cpu_smash_rate, double cpu_dizzy_rate, double difficulty_increment);
 
     vec2& GetPosition();
     vec2& GetVelocity();
@@ -31,6 +31,8 @@ class Ball {
     // these methods decide the new velocities of the ball upon cpu and user collision
     void CollideWithUserBumper(vec2 center_of_user_bumper, float left_wall_x, float right_wall_x, float top_wall_y);
     void CollideWithCpuBumper(vec2 center_of_user_bumper, float left_wall_x, float right_wall_x, float bottom_wall_y);
+
+    void ResetAllEffects();
 
     /**
      * Given a target position for the ball to hit as a vec2 and a desired speed to travel towards it at
@@ -51,10 +53,12 @@ class Ball {
 
     // a smash ball goes adds more velocity than usual onto the ball
     // it also does NOT collide with a wall, instead travels straight towards the goal
-    double smash_velocity_increase;
+    double smash_velocity_increase_;
     double user_smash_rate_;
     double cpu_smash_rate_;
-    bool is_smash_ball;
+    bool is_smash_ball_;
+    double cpu_dizzy_rate_;
+    bool is_dizzy_ball_;
 
     // how much faster the ball gets with each consecutive bumper collision
     double difficulty_increment_;
