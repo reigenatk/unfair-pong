@@ -1,4 +1,4 @@
-
+#include <visualizer/game.h>
 #include <core/ball.h>
 #include <iostream>
 
@@ -28,6 +28,16 @@ namespace unfairpong {
     double Ball::GetRadius() {
         return radius_;
     }
+
+    cinder::Color Ball::GetColor() {
+        return color_;
+    }
+
+    void Ball::ResetForNewRound(vec2 new_position, vec2 new_velocity) {
+        position_ = new_position;
+        velocity_ = new_velocity;
+    }
+
 
     void Ball::Draw() const {
         ci::gl::color(color_);

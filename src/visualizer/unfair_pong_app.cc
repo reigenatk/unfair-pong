@@ -31,12 +31,12 @@ void UnfairPongApp::setup() {
 }
 
 void UnfairPongApp::update() {
-    // no point to update if game hasnt started yet
-
-    if (unfair_pong_instance.UserWon() || unfair_pong_instance.CpuWon()) {
+    // if someone has won then stop updating
+    if (unfair_pong_instance.HasUserWon() || unfair_pong_instance.HasCpuWon()) {
         return;
     }
 
+    // if game has started and a round is running, update
     if (unfair_pong_instance.IsDifficultySelected() && unfair_pong_instance.IsRoundRunning()) {
         unfair_pong_instance.UpdateBall();
         unfair_pong_instance.UpdateUserBumper();
@@ -73,12 +73,12 @@ void UnfairPongApp::draw() {
     }
 
     // start round message (or win screen if someone has won)
-    if (unfair_pong_instance.CpuWon()) {
+    if (unfair_pong_instance.HasCpuWon()) {
         ci::gl::drawStringCentered("CPU wins!",
                                    vec2(window_length_ / 2.0, 150),
                                    ci::Color("black"), ci::Font("Helvetica", 15));
     }
-    else if (unfair_pong_instance.UserWon()) {
+    else if (unfair_pong_instance.HasUserWon()) {
         ci::gl::drawStringCentered("You win!",
                                    vec2(window_length_ / 2.0, 150),
                                    ci::Color("black"), ci::Font("Helvetica", 15));

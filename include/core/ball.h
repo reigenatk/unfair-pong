@@ -21,9 +21,15 @@ class Ball {
     vec2& GetPosition();
     vec2& GetVelocity();
     double GetRadius();
+    cinder::Color GetColor();
+
     void Draw() const;
     void UpdatePositionWithVelocity();
 
+    /**
+     * Resets the ball to a certain position, need to call this after each round ends
+     */
+    void ResetForNewRound(vec2 new_position, vec2 new_velocity);
 
     private:
     vec2 position_;

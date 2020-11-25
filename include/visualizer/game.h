@@ -40,6 +40,14 @@ class Game {
 
     void DrawScore();
 
+    double GetLeftWallX();
+
+    double GetRightWallX();
+
+    double GetTopWallY();
+
+    double GetBottomWallY();
+
     /**
      * Generates random double between -param and param
      */
@@ -56,9 +64,9 @@ class Game {
 
     bool IsRoundRunning();
 
-    bool UserWon();
+    bool HasUserWon();
 
-    bool CpuWon();
+    bool HasCpuWon();
 
     /**
      * This handles mouse movements from a MouseDown event in the cinder app
@@ -108,35 +116,21 @@ class Game {
     double length_;
     double height_;
 
-    double left_wall_;
-    double top_wall_;
-    double bottom_wall_;
-    double right_wall_;
-
     // these variables deal with game state
     bool is_difficulty_selected_;
     bool is_round_running_;
     size_t user_score_;
     size_t cpu_score_;
-    bool user_won_;
-    bool cpu_won_;
 
 
     Ball ball_in_play;
     CpuBumper cpu_bumper_;
     UserBumper user_bumper_;
 
-    float radius_of_ball_;
     size_t points_to_win_;
-    cinder::Color color_of_ball_;
-    cinder::Color color_of_user_bumper_;
-    cinder::Color color_of_cpu_bumper_;
-    double starting_ball_velocity_cap_;
     double difficulty_increment_;
-    float max_cpu_velocity_;
-
-    double user_bumper_length_;
-    double cpu_bumper_length_;
+    double starting_ball_velocity_floor_;
+    double starting_ball_velocity_cap_;
 
 };
 

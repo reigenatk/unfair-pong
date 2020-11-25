@@ -32,6 +32,8 @@ namespace unfairpong {
          */
         void MakeMovementDecision(const vec2& ball_position, const vec2& ball_velocity);
 
+        void ResetForNewRound(const vec2& new_position);
+
     private:
         // fastest speed at which the bumper may travel
         float max_movement_speed_;

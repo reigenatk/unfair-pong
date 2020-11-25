@@ -38,6 +38,11 @@ namespace unfairpong {
         return length_of_bumper_;
     }
 
+    void UserBumper::ResetForNewRound(const vec2 &new_position) {
+        center_position_ = new_position;
+        horizontal_velocity_of_bumper = 0;
+    }
+
     void UserBumper::SteerBumperWithMouse(const vec2 &mouse_coords) {
         // also do a reset on the velocity here- otherwise bumper will keep moving
         // after clicking down

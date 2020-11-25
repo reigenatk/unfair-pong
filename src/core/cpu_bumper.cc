@@ -29,6 +29,10 @@ namespace unfairpong {
         return center_position_;
     }
 
+    void CpuBumper::ResetForNewRound(const vec2 &new_position) {
+        center_position_ = new_position;
+    }
+
     double CpuBumper::GetBumperLength() {
         return length_of_bumper_;
     }

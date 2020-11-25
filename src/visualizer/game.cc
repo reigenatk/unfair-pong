@@ -24,6 +24,7 @@ namespace visualizer {
         return user_bumper_;
     }
 
+    // this method is a little long mainly to avoid using unnecessary member variables
     void Game::SelectDifficulty(string difficulty) {
         string path = "../../../data/";
         path += difficulty;
@@ -31,6 +32,15 @@ namespace visualizer {
         std::ifstream i(path);
         json j;
         i >> j;
+
+        float radius_of_ball_;
+        cinder::Color color_of_ball_;
+        cinder::Color color_of_user_bumper_;
+        cinder::Color color_of_cpu_bumper_;
+        float max_cpu_velocity_;
+
+        double user_bumper_length_;
+        double cpu_bumper_length_;
 
         radius_of_ball_ = j["radius_of_ball_"];
         points_to_win_ = j["points_to_win_"];
@@ -45,6 +55,7 @@ namespace visualizer {
         color_of_cpu_bumper_ = cinder::Color(cpu_bumper_color[0], cpu_bumper_color[1], cpu_bumper_color[2]);
 
         starting_ball_velocity_cap_ = j["starting_ball_velocity_cap_"];
+        starting_ball_velocity_floor_ = j["starting_ball_velocity_floor_"];
         difficulty_increment_ = j["difficulty_increment_"];
         max_cpu_velocity_ = j["max_cpu_velocity_"];
 
@@ -55,24 +66,36 @@ namespace visualizer {
 
         is_difficulty_selected_ = true;
 
-        SetupNewRound();
+        // I need this value to be relatively large or else at high ball velocities, the game will mistakenly think
+        // that a user scored because the paddle isn't large enough to collide with ball in time
+        double thickness_of_bumper = 15;
+
+        user_bumper_ = UserBumper(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetBottomWallY()),
+                                  user_bumper_length_, color_of_user_bumper_,
+                                  thickness_of_bumper, (float) GetLeftWallX(), (float) GetRightWallX());
+        cpu_bumper_ = CpuBumper(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetTopWallY()), cpu_bumper_length_,
+                                color_of_cpu_bumper_, thickness_of_bumper, max_cpu_velocity_, float(GetLeftWallX()), (float) GetRightWallX());
+
+        // we have a certain range that will be the starting speed of the ball each round
+        double starting_speed_of_ball = GenerateRandomDoubleBetween(starting_ball_velocity_floor_, starting_ball_velocity_cap_);
+
+        // now generate some random vec2 velocity with this speed and send it towards the CPU to begin with
+        // so user has time to react
+        vec2 random_velocity = RandomVelocityGivenSpeed(starting_speed_of_ball, false);
+
+        ball_in_play = Ball(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, (GetTopWallY() + GetBottomWallY()) / 2.0),
+                            random_velocity, color_of_ball_, radius_of_ball_);
     }
 
     Game::Game(vec2 top_left, double length, double height) {
         top_left_corner_ = top_left;
         length_ = length;
         height_ = height;
-        bottom_wall_ = top_left_corner_.y + height;
-        right_wall_ = top_left_corner_.x + length;
-        top_wall_ = top_left_corner_.y;
-        left_wall_ = top_left_corner_.x;
         is_round_running_ = false;
         is_difficulty_selected_ = false;
 
         user_score_ = 0;
         cpu_score_ = 0;
-        user_won_ = false;
-        cpu_won_ = false;
 
     }
 
@@ -84,12 +107,28 @@ namespace visualizer {
         return is_round_running_;
     }
 
-    bool Game::UserWon() {
-        return user_won_;
+    bool Game::HasUserWon() {
+        return (user_score_ == points_to_win_);
     }
 
-    bool Game::CpuWon() {
-        return cpu_won_;
+    bool Game::HasCpuWon() {
+        return (cpu_score_ == points_to_win_);
+    }
+
+    double Game::GetLeftWallX() {
+        return top_left_corner_.x;
+    }
+
+    double Game::GetRightWallX() {
+        return top_left_corner_.x + length_;
+    }
+
+    double Game::GetBottomWallY() {
+        return top_left_corner_.y + height_;
+    }
+
+    double Game::GetTopWallY() {
+        return top_left_corner_.y;
     }
 
     double Game::GenerateRandomDouble(double absolute_value_limit) {
@@ -171,12 +210,15 @@ namespace visualizer {
 
     void Game::DrawInstructions() {
         ci::gl::drawStringCentered("Control with arrow keys OR dragging mouse",
-                                   vec2((left_wall_ + right_wall_) / 2.0, bottom_wall_ + 20),
+                                   vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetBottomWallY() + 20),
                                    ci::Color("black"), ci::Font("Helvetica", 15));
     }
 
     void Game::DrawScore() {
-        vec2 ball_center_1 = vec2(right_wall_, bottom_wall_);
+        float radius_of_ball_ = (float) ball_in_play.GetRadius();
+        cinder::Color color_of_ball_ = ball_in_play.GetColor();
+
+        vec2 ball_center_1 = vec2(GetRightWallX(), GetBottomWallY());
         ball_center_1 += vec2(radius_of_ball_, -radius_of_ball_);
         float gap = 1;
         ball_center_1 += vec2(gap, 0);
@@ -187,7 +229,7 @@ namespace visualizer {
             ball_center_1 += vec2(0, -radius_of_ball_*2 - gap);
         }
 
-        vec2 ball_center_2 = vec2(right_wall_, top_wall_);
+        vec2 ball_center_2 = vec2(GetRightWallX(), GetTopWallY());
         ball_center_2 += vec2(radius_of_ball_, -radius_of_ball_);
         ball_center_2 += vec2(gap, 0);
 
@@ -216,31 +258,15 @@ namespace visualizer {
     }
 
     void Game::SetupNewRound() {
-        // I need this value to be relatively large or else at high ball velocities, the game will mistakenly think
-        // that a user scored because the paddle isn't large enough to collide with ball in time
-        double thickness_of_bumper = 15;
 
-        user_bumper_ = UserBumper(vec2((left_wall_ + right_wall_) / 2.0, bottom_wall_),
-                                  user_bumper_length_, color_of_user_bumper_,
-                                  thickness_of_bumper, (float) left_wall_, (float) right_wall_);
-        cpu_bumper_ = CpuBumper(vec2((left_wall_ + right_wall_) / 2.0, top_wall_), cpu_bumper_length_,
-                                color_of_cpu_bumper_, thickness_of_bumper, max_cpu_velocity_, float(left_wall_), (float) right_wall_);
-
-        // don't want the velocity to start really low by chance
-        // (because user would have to wait a long time for it to bounce to other side)
-        // What below while loop does is essentially generate value between (3, starting_cap)
-
-        double velocity_lower_bound = 3;
-
-        double starting_speed_of_ball = GenerateRandomDoubleBetween(velocity_lower_bound, starting_ball_velocity_cap_);
+        double starting_speed_of_ball = GenerateRandomDoubleBetween(starting_ball_velocity_floor_, starting_ball_velocity_cap_);
 
         // now generate some random velocity with this speed and send it towards the CPU to begin with
         // so user has time to react
         vec2 random_velocity = RandomVelocityGivenSpeed(starting_speed_of_ball, false);
-
-        ball_in_play = Ball(vec2((left_wall_ + right_wall_) / 2.0, (top_wall_+bottom_wall_) / 2.0),
-                            random_velocity, color_of_ball_, radius_of_ball_);
-
+        ball_in_play.ResetForNewRound(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, (GetTopWallY() + GetBottomWallY()) / 2.0), random_velocity);
+        cpu_bumper_.ResetForNewRound(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetTopWallY()));
+        user_bumper_.ResetForNewRound(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetBottomWallY()));
     }
 
     void Game::StartNewRound() {
@@ -249,25 +275,25 @@ namespace visualizer {
 
     void Game::CheckIfPlayerScored() {
         vec2& current_ball_position = ball_in_play.GetPosition();
-        if (current_ball_position.y > bottom_wall_) {
+        if (current_ball_position.y > GetBottomWallY()) {
             // CPU scored
             cpu_score_++;
             is_round_running_ = false;
 
-            if (cpu_score_ == points_to_win_) {
-                cpu_won_ = true;
+            if (HasCpuWon()) {
+                // do not set up new round
             }
             else {
                 SetupNewRound();
             }
         }
-        else if (current_ball_position.y < top_wall_) {
+        else if (current_ball_position.y < GetTopWallY()) {
             // User scored
             user_score_++;
             is_round_running_ = false;
 
-            if (user_score_ == points_to_win_) {
-                user_won_ = true;
+            if (HasUserWon()) {
+                // do not set up new round
             }
             else {
                 SetupNewRound();
@@ -280,11 +306,11 @@ namespace visualizer {
         vec2& current_ball_position = ball_in_play.GetPosition();
         vec2& current_ball_velocity = ball_in_play.GetVelocity();
 
-        if (abs(current_ball_position.x - left_wall_) < ball_in_play.GetRadius() && current_ball_velocity.x < 0) {
+        if (abs(current_ball_position.x - GetLeftWallX()) < ball_in_play.GetRadius() && current_ball_velocity.x < 0) {
             current_ball_velocity.x = - current_ball_velocity.x;
         }
         // right wall
-        if (abs(current_ball_position.x - right_wall_) < ball_in_play.GetRadius() && current_ball_velocity.x > 0) {
+        if (abs(current_ball_position.x - GetRightWallX()) < ball_in_play.GetRadius() && current_ball_velocity.x > 0) {
             current_ball_velocity.x = - current_ball_velocity.x;
         }
     }
@@ -306,7 +332,7 @@ namespace visualizer {
 
         // if it intersects with the vertical height of our bumper
         // as well as in the range of our bumper length then it must be intersecting
-        if (abs(current_ball_position.y - bottom_wall_) < bumper_thickness &&
+        if (abs(current_ball_position.y - GetBottomWallY()) < bumper_thickness &&
                                 abs(current_ball_position.x - bumper_center.x) < (float) (bumper_length / 2.0)) {
             current_ball_velocity = RandomVelocityGivenSpeed(length(current_ball_velocity) + difficulty_increment_, false);
         }
@@ -319,7 +345,7 @@ namespace visualizer {
         double bumper_length = cpu_bumper_.GetBumperLength();
         vec2& bumper_center = cpu_bumper_.GetBumperCenter();
 
-        if (abs(current_ball_position.y - top_wall_) < bumper_thickness &&
+        if (abs(current_ball_position.y - GetTopWallY()) < bumper_thickness &&
             abs(current_ball_position.x - bumper_center.x) < (float) (bumper_length / 2.0)) {
             current_ball_velocity = RandomVelocityGivenSpeed(length(current_ball_velocity) + difficulty_increment_, true);
         }

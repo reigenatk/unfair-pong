@@ -28,6 +28,8 @@ namespace unfairpong {
         void MoveBumperLeft();
         void MoveBumperRight();
 
+        void ResetForNewRound(const vec2& new_position);
+
         /**
          * Use this method when user is moving bumper with mouse- we need to place a limit on
          * where the bumper can be though so there are special cases, not just a simple setter
