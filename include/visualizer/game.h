@@ -36,19 +36,19 @@ class Game {
 
     void Draw();
 
-    void DrawInstructions();
+    void DrawInstructions() const;
 
-    void DrawScore();
+    void DrawScore() const;
 
-    double GetLeftWallX();
+    double GetLeftWallX() const;
 
-    double GetRightWallX();
+    double GetRightWallX() const;
 
-    double GetTopWallY();
+    double GetTopWallY() const;
 
-    double GetBottomWallY();
+    double GetBottomWallY() const;
 
-    Ball GetBall();
+    Ball GetBall() const;
 
     /**
      * Generates random double between -param and param
@@ -74,13 +74,13 @@ class Game {
      */
     UserBumper& GetUserBumper();
 
-    bool IsDifficultySelected();
+    bool IsDifficultySelected() const;
 
-    bool IsRoundRunning();
+    bool IsRoundRunning() const;
 
-    bool HasUserWon();
+    bool HasUserWon() const;
 
-    bool HasCpuWon();
+    bool HasCpuWon() const;
 
     /**
      * This handles mouse movements from a MouseDown event in the cinder app
@@ -89,6 +89,10 @@ class Game {
 
     void CheckIfPlayerScored();
 
+    /**
+     * This method is called every time step, what it does is it calls the position update methods first
+     * and then the collision execution functions after
+     */
     void UpdateAll();
 
     /**
@@ -137,7 +141,11 @@ class Game {
     CpuBumper cpu_bumper_;
     UserBumper user_bumper_;
 
+    // points_to_win makes sense to be in this class
     size_t points_to_win_;
+
+    // I also thought these two made sense to be in the Game class since they're only ever used to
+    // initialize ball velocities in the SetupNewRound() method and in the constructor
     double starting_ball_velocity_floor_;
     double starting_ball_velocity_cap_;
 

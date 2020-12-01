@@ -21,10 +21,10 @@ class Ball {
 
     vec2& GetPosition();
     vec2& GetVelocity();
-    double GetRadius();
-    cinder::Color GetColor();
+    double GetRadius() const;
+    cinder::Color GetColor() const;
 
-    void Draw() const;
+    void Draw();
     void UpdatePositionWithVelocity(vec2 farther_user_corner);
     void ChangeIntoRandomColor();
 
@@ -48,7 +48,7 @@ class Ball {
     private:
     vec2 position_;
     vec2 velocity_;
-    cinder::Color color_; // a vector of three doubles for r, g, b
+    cinder::Color color_;
     double radius_;
 
     // a smash ball goes adds more velocity than usual onto the ball
@@ -68,7 +68,7 @@ class Ball {
     // the fastest a ball can travel, need this because once the ball starts going too fast
     // collisions stop working
     float max_ball_velocity;
-
+    cinder::gl::Texture2dRef effect_image_;
 };
 
 }

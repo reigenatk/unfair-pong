@@ -27,6 +27,8 @@ Ball::Ball(vec2 starting_position, vec2 starting_velocity, cinder::Color color,
     smash_velocity_increase_ = 10; // just how much faster does the ball get on a smash hit
     cpu_dizzy_rate_ = cpu_dizzy_rate;
     cpu_monkey_rate_ = cpu_monkey_rate;
+
+    effect_image_ = nullptr;
     ResetAllEffects();
 }
 
@@ -38,11 +40,11 @@ vec2& Ball::GetVelocity() {
     return velocity_;
 }
 
-double Ball::GetRadius() {
+double Ball::GetRadius() const {
     return radius_;
 }
 
-cinder::Color Ball::GetColor() {
+cinder::Color Ball::GetColor() const {
     return color_;
 }
 
@@ -64,6 +66,7 @@ void Ball::ResetAllEffects() {
     is_smash_ball_ = false;
     is_dizzy_ball_ = false;
     is_monkey_ball_ = false;
+    effect_image_ = nullptr;
 }
 
 vec2 Ball::VelocityGivenTargetAndSpeed(vec2 target_pos, double desired_velocity_of_ball) {
@@ -80,9 +83,6 @@ vec2 Ball::VelocityGivenTargetAndSpeed(vec2 target_pos, double desired_velocity_
 }
 
 void Ball::CollideWithUserBumper(vec2 center_of_user_bumper, float left_wall_x, float right_wall_x, float top_wall_y) {
-    // important note about effects, the ball can only have one effect at a time.
-    // so there is no such thing as a dizzy smash ball for example- I've set up the logic here
-    // so that its impossible to get both effects by chance.
 
     if (Game::RollChance(user_smash_rate_)) {
         // user gets smash
@@ -109,6 +109,10 @@ void Ball::CollideWithUserBumper(vec2 center_of_user_bumper, float left_wall_x, 
 }
 
 void Ball::CollideWithCpuBumper(vec2 center_of_cpu_bumper, float left_wall_x, float right_wall_x, float bottom_wall_y) {
+    // important note about effects, the ball can only have one effect at a time.
+    // so there is no such thing as a dizzy smash ball for example- I've set up the logic here
+    // so that its impossible to get both effects
+
     if (Game::RollChance(cpu_smash_rate_)) {
         // if smash ball
         double target_x_location = Game::GenerateRandomDoubleBetween(left_wall_x, right_wall_x);
@@ -137,6 +141,7 @@ void Ball::CollideWithCpuBumper(vec2 center_of_cpu_bumper, float left_wall_x, fl
             is_monkey_ball_ = true;
         }
         else {
+            // if no effect
             ResetAllEffects();
         }
         velocity_ = Game::RandomVelocityGivenSpeed(new_velocity,
@@ -145,24 +150,34 @@ void Ball::CollideWithCpuBumper(vec2 center_of_cpu_bumper, float left_wall_x, fl
     }
 }
 
-void Ball::Draw() const {
+void Ball::Draw() {
+    // I tried to make it so that we don't have to load the image in each frame as that would be very taxing
+    // on the efficiency- so I set a member variable called effect_image_
+    // to nullptr after each collision and load in the necessary image once
+    // on the first frame
     if (is_smash_ball_) {
         ci::gl::color(ci::Color("white"));
-        cinder::gl::Texture2dRef texture = cinder::gl::Texture2d::create
-                (cinder::loadImage("../../../data/fire.png"));
-        ci::gl::draw(texture, position_);
+        if (effect_image_ == nullptr) {
+            effect_image_ = cinder::gl::Texture2d::create
+                    (cinder::loadImage("../../../data/fire.png"));
+        }
+        ci::gl::draw(effect_image_, position_);
     }
     else if (is_dizzy_ball_) {
         ci::gl::color(ci::Color("white"));
-        cinder::gl::Texture2dRef texture = cinder::gl::Texture2d::create
-                (cinder::loadImage("../../../data/dizzy.png"));
-        ci::gl::draw(texture, position_);
+        if (effect_image_ == nullptr) {
+            effect_image_ = cinder::gl::Texture2d::create
+                    (cinder::loadImage("../../../data/dizzy.png"));
+        }
+        ci::gl::draw(effect_image_, position_);
     }
     else if (is_monkey_ball_) {
         ci::gl::color(ci::Color("white"));
-        cinder::gl::Texture2dRef texture = cinder::gl::Texture2d::create
-                (cinder::loadImage("../../../data/monkey.png"));
-        ci::gl::draw(texture, position_);
+        if (effect_image_ == nullptr) {
+            effect_image_ = cinder::gl::Texture2d::create
+                    (cinder::loadImage("../../../data/monkey.png"));
+        }
+        ci::gl::draw(effect_image_, position_);
     }
     ci::gl::color(color_);
     ci::gl::drawSolidCircle(position_, (float) radius_);

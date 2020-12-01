@@ -27,6 +27,9 @@ void UnfairPongApp::setup() {
     double box_height = 600;
     unfair_pong_instance = Game(vec2(100, 100), box_length, box_height);
 
+    // images
+    cinder::gl::Texture2dRef sad_emoji_ = cinder::gl::Texture2d::create
+            (cinder::loadImage("../../../data/whygodwhy.png"));
 
 }
 
@@ -57,10 +60,8 @@ void UnfairPongApp::draw() {
                                ci::Color("black"), ci::Font("Helvetica", 30));
 
     ci::gl::color(ci::Color("white"));
-    cinder::gl::Texture2dRef texture = cinder::gl::Texture2d::create
-            (cinder::loadImage("../../../data/whygodwhy.png"));
 
-    ci::gl::draw(texture, vec2(window_length_ / 2.0 + 60, 10));
+    ci::gl::draw(sad_emoji_, vec2(window_length_ / 2.0 + 60, 10));
 
     // prompt user to pick difficulty if not selected yet
     if (!unfair_pong_instance.IsDifficultySelected()) {

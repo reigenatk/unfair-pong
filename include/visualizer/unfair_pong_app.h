@@ -32,7 +32,7 @@ class UnfairPongApp : public ci::app::App {
 
  private:
   Game unfair_pong_instance;
-
+  cinder::gl::Texture2dRef sad_emoji_;
 
 
 };

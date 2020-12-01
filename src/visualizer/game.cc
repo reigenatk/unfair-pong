@@ -125,39 +125,39 @@ void Game::UpdateAll() {
     ExecuteBallCpuBumperCollision();
 }
 
-bool Game::IsDifficultySelected() {
+bool Game::IsDifficultySelected() const {
     return is_difficulty_selected_;
 }
 
-bool Game::IsRoundRunning() {
+bool Game::IsRoundRunning() const {
     return is_round_running_;
 }
 
-bool Game::HasUserWon() {
+bool Game::HasUserWon() const {
     return (user_score_ == points_to_win_);
 }
 
-bool Game::HasCpuWon() {
+bool Game::HasCpuWon() const {
     return (cpu_score_ == points_to_win_);
 }
 
-double Game::GetLeftWallX() {
+double Game::GetLeftWallX() const {
     return top_left_corner_.x;
 }
 
-double Game::GetRightWallX() {
+double Game::GetRightWallX() const {
     return top_left_corner_.x + length_;
 }
 
-double Game::GetBottomWallY() {
+double Game::GetBottomWallY() const {
     return top_left_corner_.y + height_;
 }
 
-double Game::GetTopWallY() {
+double Game::GetTopWallY() const {
     return top_left_corner_.y;
 }
 
-Ball Game::GetBall() {
+Ball Game::GetBall() const {
     return ball_in_play;
 }
 
@@ -238,13 +238,13 @@ void Game::HandleMouseMovement(const vec2 &mouse_coords) {
     user_bumper_.SteerBumperWithMouse(mouse_coords);
 }
 
-void Game::DrawInstructions() {
+void Game::DrawInstructions() const {
     ci::gl::drawStringCentered("Control with arrow keys OR dragging mouse",
                                vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetBottomWallY() + 20),
                                ci::Color("black"), ci::Font("Helvetica", 15));
 }
 
-void Game::DrawScore() {
+void Game::DrawScore() const {
     float radius_of_ball_ = (float) ball_in_play.GetRadius();
     cinder::Color color_of_ball_ = ball_in_play.GetColor();
 
@@ -303,6 +303,7 @@ void Game::SetupNewRound() {
 }
 
 void Game::StartNewRound() {
+    // by setting this to true the update method will now trigger the updateAll method
     is_round_running_ = true;
 }
 
@@ -357,6 +358,11 @@ void Game::UpdateCpuBumper() {
 }
 
 void Game::ExecuteBallUserBumperCollision() {
+    // I decided to keep this method and the one below it in the game class but
+    // split it into two parts, the if statement detects whether there is a collision
+    // and only when there is a collision do I call the CollideWithUserBumper method
+    // otherwise I'd be passing in a lot of params to just make this happen all in the Ball class
+
     vec2& current_ball_position = ball_in_play.GetPosition();
     vec2& current_ball_velocity = ball_in_play.GetVelocity();
     double ball_radius = ball_in_play.GetRadius();
