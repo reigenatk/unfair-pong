@@ -27,6 +27,14 @@ double Bumper::GetBumperThickness() {
     return thickness_of_bumper_;
 }
 
+void Bumper::SetBumperLength(double new_length) {
+    length_of_bumper_ = new_length;
+}
+
+void Bumper::SetBumperCenter(vec2 new_center) {
+    center_position_ = new_center;
+}
+
 void Bumper::ResetForNewRound(const vec2 &new_position) {
     center_position_ = new_position;
 

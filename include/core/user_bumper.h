@@ -5,6 +5,10 @@
 #include <cinder/Color.h>
 #include <core/bumper.h>
 #include "../../../../include/glm/glm.hpp"
+#include "cinder/app/App.h"
+#include "cinder/app/RendererGl.h"
+#include "cinder/gl/gl.h"
+
 using glm::vec2;
 
 namespace unfairpong {
@@ -28,6 +32,12 @@ public:
      */
     void MoveBumperLeft();
     void MoveBumperRight();
+
+    /**
+     * Returns the vec2 coords of the corner that is further away from center of bumper
+     * so either (leftwall.x, bottomwall.y) or (rightwall.x, bottomwall.y)
+     * @return
+     */
     vec2 FartherCorner();
 
 

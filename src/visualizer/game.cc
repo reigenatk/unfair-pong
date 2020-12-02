@@ -9,6 +9,7 @@ using glm::dot;
 using glm::distance;
 using glm::length;
 using std::string;
+using std::to_string;
 
 using json = nlohmann::json;
 
@@ -22,6 +23,10 @@ Game::Game() {
 
 UserBumper& Game::GetUserBumper() {
     return user_bumper_;
+}
+
+CpuBumper& Game::GetCpuBumper() {
+    return cpu_bumper_;
 }
 
 // this method is a little long mainly to avoid using unnecessary member variables
@@ -48,6 +53,7 @@ void Game::SelectDifficulty(string difficulty) {
     double cpu_smash_rate;
     double cpu_dizzy_rate;
     double cpu_monkey_rate;
+    double cpu_brittle_rate;
 
     radius_of_ball_ = j["radius_of_ball_"];
     points_to_win_ = j["points_to_win_"];
@@ -74,6 +80,7 @@ void Game::SelectDifficulty(string difficulty) {
 
     cpu_dizzy_rate = j["cpu_dizzy_rate"];
     cpu_monkey_rate = j["cpu_monkey_rate"];
+    cpu_brittle_rate = j["cpu_brittle_rate"];
 
     // now create all the objects and set game to running, now that we have selected a difficulty!
 
@@ -98,7 +105,7 @@ void Game::SelectDifficulty(string difficulty) {
 
     ball_in_play = Ball(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, (GetTopWallY() + GetBottomWallY()) / 2.0),
                         random_velocity, color_of_ball_, radius_of_ball_,
-                        user_smash_rate, cpu_smash_rate, cpu_dizzy_rate, cpu_monkey_rate, difficulty_increment_);
+                        user_smash_rate, cpu_smash_rate, cpu_dizzy_rate, cpu_monkey_rate, cpu_brittle_rate, difficulty_increment_);
 }
 
 Game::Game(vec2 top_left, double length, double height) {
@@ -121,8 +128,10 @@ void Game::UpdateAll() {
     CheckIfPlayerScored();
 
     ExecuteBallWallCollision();
-    ExecuteBallUserBumperCollision();
-    ExecuteBallCpuBumperCollision();
+    ball_in_play.CollideWithUserBumper(GetUserBumper(), (float) GetLeftWallX(),
+                                       (float) GetRightWallX(), (float) GetTopWallY(), (float) GetBottomWallY());
+    ball_in_play.CollideWithCpuBumper(GetCpuBumper(), (float) GetLeftWallX(),
+                                      (float) GetRightWallX(), (float) GetTopWallY(), (float) GetBottomWallY());
 }
 
 bool Game::IsDifficultySelected() const {
@@ -234,14 +243,10 @@ vec2 Game::RandomVelocityGivenSpeed(double speed_desired, bool positive_y_veloci
     return vec2(new_x_vel, new_y_vel);
 }
 
-void Game::HandleMouseMovement(const vec2 &mouse_coords) {
-    user_bumper_.SteerBumperWithMouse(mouse_coords);
-}
-
 void Game::DrawInstructions() const {
     ci::gl::drawStringCentered("Control with arrow keys OR dragging mouse",
                                vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetBottomWallY() + 20),
-                               ci::Color("black"), ci::Font("Helvetica", 15));
+                               ci::Color("pink"), ci::Font("Epilogue", 30));
 }
 
 void Game::DrawScore() const {
@@ -258,9 +263,14 @@ void Game::DrawScore() const {
         ci::gl::drawSolidCircle(ball_center_1, radius_of_ball_);
         ball_center_1 += vec2(0, -radius_of_ball_*2 - gap);
     }
+    // draw the actual user score somewhere to the right of the visual
+    ci::gl::drawStringCentered(to_string(user_score_),
+                               vec2(GetRightWallX() + 2*radius_of_ball_ + gap + 10, GetBottomWallY() + 30),
+                               ci::Color("white"), ci::Font("Impact", 40));
 
+    // same with CPU score
     vec2 ball_center_2 = vec2(GetRightWallX(), GetTopWallY());
-    ball_center_2 += vec2(radius_of_ball_, -radius_of_ball_);
+    ball_center_2 += vec2(radius_of_ball_, radius_of_ball_);
     ball_center_2 += vec2(gap, 0);
 
     for (size_t i = 0; i < cpu_score_; i++) {
@@ -268,6 +278,10 @@ void Game::DrawScore() const {
         ci::gl::drawSolidCircle(ball_center_2, radius_of_ball_);
         ball_center_2 += vec2(0, radius_of_ball_*2 + gap);
     }
+
+    ci::gl::drawStringCentered(to_string(cpu_score_),
+                               vec2(GetRightWallX() + 2*radius_of_ball_ + gap + 10, GetTopWallY() - 30),
+                               ci::Color("white"), ci::Font("Impact", 40));
 }
 
 void Game::Draw() {
@@ -275,7 +289,7 @@ void Game::Draw() {
 
     // boundaries
     vec2 bottom_right_corner = top_left_corner_ + vec2(length_, height_);
-    ci::gl::color(ci::Color("black"));
+    ci::gl::color(ci::Color("white"));
     ci::Rectf pixel_bounding_box(top_left_corner_, bottom_right_corner);
     ci::gl::drawStrokedRect(pixel_bounding_box);
 
@@ -350,50 +364,20 @@ void Game::ExecuteBallWallCollision() {
 }
 
 void Game::UpdateBall() {
-    ball_in_play.UpdatePositionWithVelocity(user_bumper_.FartherCorner());
+    vec2 farthest_corner = user_bumper_.FartherCorner();
+    // pass in the furthest point to the left or right such that ball will not collide with wall first
+    // before I added this I was getting some weird bugs where the ball would get stuck in the corner
+    if (farthest_corner.x == GetLeftWallX()) {
+        farthest_corner.x += (float) (ball_in_play.GetRadius());
+    }
+    else if (farthest_corner.x == GetRightWallX()) {
+        farthest_corner.x -= (float) (ball_in_play.GetRadius());
+    }
+    ball_in_play.UpdatePositionWithVelocity(farthest_corner);
 }
 
 void Game::UpdateCpuBumper() {
     cpu_bumper_.MakeMovementDecision(ball_in_play.GetPosition(), ball_in_play.GetVelocity());
-}
-
-void Game::ExecuteBallUserBumperCollision() {
-    // I decided to keep this method and the one below it in the game class but
-    // split it into two parts, the if statement detects whether there is a collision
-    // and only when there is a collision do I call the CollideWithUserBumper method
-    // otherwise I'd be passing in a lot of params to just make this happen all in the Ball class
-
-    vec2& current_ball_position = ball_in_play.GetPosition();
-    vec2& current_ball_velocity = ball_in_play.GetVelocity();
-    double ball_radius = ball_in_play.GetRadius();
-    double bumper_thickness = user_bumper_.GetBumperThickness();
-    double bumper_length = user_bumper_.GetBumperLength();
-    vec2& bumper_center = user_bumper_.GetBumperCenter();
-
-    // if intersecting
-    if (abs(current_ball_position.y - GetBottomWallY()) < bumper_thickness + (float) (ball_radius / 2.0) &&
-                            abs(current_ball_position.x - bumper_center.x) < (float) (bumper_length / 2.0)) {
-        ball_in_play.CollideWithUserBumper(bumper_center,
-                                           (float) GetLeftWallX(),
-                                           (float) GetRightWallX(),
-                                           (float) GetTopWallY());
-    }
-}
-
-void Game::ExecuteBallCpuBumperCollision() {
-    vec2& current_ball_position = ball_in_play.GetPosition();
-    vec2& current_ball_velocity = ball_in_play.GetVelocity();
-    double ball_radius = ball_in_play.GetRadius();
-    double bumper_thickness = cpu_bumper_.GetBumperThickness();
-    double bumper_length = cpu_bumper_.GetBumperLength();
-    vec2& bumper_center = cpu_bumper_.GetBumperCenter();
-
-    if (abs(current_ball_position.y - GetTopWallY()) < bumper_thickness + (float) (ball_radius / 2.0) &&
-        abs(current_ball_position.x - bumper_center.x) < (float) (bumper_length / 2.0)) {
-        ball_in_play.CollideWithCpuBumper(bumper_center, (float) GetLeftWallX(),
-                                          (float) GetRightWallX(),
-                                          (float) GetBottomWallY());
-    }
 }
 
 void Game::UpdateUserBumper() {

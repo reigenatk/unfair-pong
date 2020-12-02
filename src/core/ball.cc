@@ -14,7 +14,7 @@ Ball::Ball() {
 
 Ball::Ball(vec2 starting_position, vec2 starting_velocity, cinder::Color color,
            double radius, double user_smash_rate, double cpu_smash_rate, double cpu_dizzy_rate,
-           double cpu_monkey_rate, double difficulty_increment) {
+           double cpu_monkey_rate, double cpu_brittle_rate, double difficulty_increment) {
     position_ = starting_position;
     velocity_ = starting_velocity;
     color_ = color;
@@ -27,6 +27,7 @@ Ball::Ball(vec2 starting_position, vec2 starting_velocity, cinder::Color color,
     smash_velocity_increase_ = 10; // just how much faster does the ball get on a smash hit
     cpu_dizzy_rate_ = cpu_dizzy_rate;
     cpu_monkey_rate_ = cpu_monkey_rate;
+    cpu_brittle_rate_ = cpu_brittle_rate;
 
     effect_image_ = nullptr;
     ResetAllEffects();
@@ -66,6 +67,7 @@ void Ball::ResetAllEffects() {
     is_smash_ball_ = false;
     is_dizzy_ball_ = false;
     is_monkey_ball_ = false;
+    is_brittle_ball_ = false;
     effect_image_ = nullptr;
 }
 
@@ -82,10 +84,49 @@ vec2 Ball::VelocityGivenTargetAndSpeed(vec2 target_pos, double desired_velocity_
     return ret;
 }
 
-void Ball::CollideWithUserBumper(vec2 center_of_user_bumper, float left_wall_x, float right_wall_x, float top_wall_y) {
+void Ball::CollideWithUserBumper(UserBumper& user_bumper, float left_wall_x, float right_wall_x, float top_wall_y, float bottom_wall_y) {
+
+    // first check if its even  colliding
+    if (abs(position_.y - bottom_wall_y) < user_bumper.GetBumperThickness() + (float) (radius_ / 2.0) &&
+        abs(position_.x - user_bumper.GetBumperCenter().x) < (float) (user_bumper.GetBumperLength() / 2.0)) {
+        // is colliding
+    }
+    else {
+        // if not
+        return;
+    }
+
+    // if the ball colliding was a brittle ball, then we need to "break off" a part of the user bumper.
+    if (is_brittle_ball_) {
+        if (position_.x >= user_bumper.GetBumperCenter().x) {
+            // if the ball landed on the right side of the bumper
+
+            vec2 new_bumper_left = user_bumper.GetBumperCenter() + vec2(-user_bumper.GetBumperLength() / 2.0, 0);
+            vec2 new_bumper_right = vec2(position_.x, user_bumper.GetBumperCenter().y);
+            double amount_to_break = user_bumper.GetBumperCenter().x + (user_bumper.GetBumperLength() / 2.0) - position_.x;
+            user_bumper.SetBumperLength(user_bumper.GetBumperLength() - amount_to_break);
+
+            vec2 new_center = new_bumper_left + new_bumper_right;
+            new_center.x /= 2.0;
+            new_center.y /= 2.0;
+            user_bumper.SetBumperCenter(new_center);
+        }
+        else {
+            // if the ball landed on the left side of the bumper
+            vec2 new_bumper_left = vec2(position_.x, user_bumper.GetBumperCenter().y);
+            vec2 new_bumper_right = user_bumper.GetBumperCenter() + vec2(user_bumper.GetBumperLength() / 2.0, 0);
+            double amount_to_break = position_.x - (user_bumper.GetBumperCenter().x - (user_bumper.GetBumperLength() / 2.0));
+            user_bumper.SetBumperLength(user_bumper.GetBumperLength() - amount_to_break);
+
+            vec2 new_center = new_bumper_left + new_bumper_right;
+            new_center.x /= 2.0;
+            new_center.y /= 2.0;
+            user_bumper.SetBumperCenter(new_center);
+        }
+    }
 
     if (Game::RollChance(user_smash_rate_)) {
-        // user gets smash
+        // if smash ball
 
         double target_x_location = Game::GenerateRandomDoubleBetween(left_wall_x, right_wall_x);
         double velocity_of_ball = fmin(max_ball_velocity, length(velocity_) + smash_velocity_increase_);
@@ -94,7 +135,8 @@ void Ball::CollideWithUserBumper(vec2 center_of_user_bumper, float left_wall_x, 
         is_smash_ball_ = true;
     }
     else {
-        // if last ball was smash ball
+        // if last ball was smash ball, slow down the velocity by however much the previous smash increased it
+        // kind of like how receiving a tennis serve will slow the ball down to a slower speed
         double new_velocity;
         if (is_smash_ball_) {
             new_velocity = fmin(max_ball_velocity, length(velocity_) + difficulty_increment_ - smash_velocity_increase_);
@@ -108,10 +150,20 @@ void Ball::CollideWithUserBumper(vec2 center_of_user_bumper, float left_wall_x, 
 
 }
 
-void Ball::CollideWithCpuBumper(vec2 center_of_cpu_bumper, float left_wall_x, float right_wall_x, float bottom_wall_y) {
+void Ball::CollideWithCpuBumper(CpuBumper& cpu_bumper, float left_wall_x, float right_wall_x, float top_wall_y, float bottom_wall_y) {
     // important note about effects, the ball can only have one effect at a time.
     // so there is no such thing as a dizzy smash ball for example- I've set up the logic here
     // so that its impossible to get both effects
+
+    // also as of now I am only assigning CPU the power to issue out monkey, dizzy, and brittle balls
+
+    if (abs(position_.y - top_wall_y) < cpu_bumper.GetBumperThickness() + (float) (radius_ / 2.0) &&
+        abs(position_.x - cpu_bumper.GetBumperCenter().x) < (float) (cpu_bumper.GetBumperLength() / 2.0)) {
+        // is colliding
+    }
+    else {
+        return;
+    }
 
     if (Game::RollChance(cpu_smash_rate_)) {
         // if smash ball
@@ -139,6 +191,10 @@ void Ball::CollideWithCpuBumper(vec2 center_of_cpu_bumper, float left_wall_x, fl
             // if cpu gets monkey ball
             ResetAllEffects();
             is_monkey_ball_ = true;
+        }
+        else if (Game::RollChance(cpu_brittle_rate_)) {
+            ResetAllEffects();
+            is_brittle_ball_ = true;
         }
         else {
             // if no effect
@@ -176,6 +232,14 @@ void Ball::Draw() {
         if (effect_image_ == nullptr) {
             effect_image_ = cinder::gl::Texture2d::create
                     (cinder::loadImage("../../../data/monkey.png"));
+        }
+        ci::gl::draw(effect_image_, position_);
+    }
+    else if (is_brittle_ball_) {
+        ci::gl::color(ci::Color("white"));
+        if (effect_image_ == nullptr) {
+            effect_image_ = cinder::gl::Texture2d::create
+                    (cinder::loadImage("../../../data/brittle.png"));
         }
         ci::gl::draw(effect_image_, position_);
     }

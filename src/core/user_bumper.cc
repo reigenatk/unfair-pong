@@ -22,7 +22,6 @@ UserBumper::UserBumper(vec2 center_position, double length_of_bumper, cinder::Co
     bumper_sensitivity_ = 3.0;
 }
 
-
 void UserBumper::SteerBumperWithMouse(const vec2 &mouse_coords) {
     // also do a reset on the velocity here- otherwise bumper will keep moving
     // after clicking down

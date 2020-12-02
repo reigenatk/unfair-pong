@@ -20,6 +20,8 @@ public:
     double GetBumperThickness();
     vec2& GetBumperCenter();
     double GetBumperLength();
+    void SetBumperLength(double new_length);
+    void SetBumperCenter(vec2 new_center);
     void ResetForNewRound(const vec2& new_position);
 
 
