@@ -74,6 +74,8 @@ class Game {
      */
     UserBumper& GetUserBumper();
 
+    CpuBumper& GetCpuBumper();
+
     bool IsDifficultySelected() const;
 
     bool IsRoundRunning() const;
@@ -81,11 +83,6 @@ class Game {
     bool HasUserWon() const;
 
     bool HasCpuWon() const;
-
-    /**
-     * This handles mouse movements from a MouseDown event in the cinder app
-     */
-    void HandleMouseMovement(const vec2& mouse_coords);
 
     void CheckIfPlayerScored();
 
@@ -99,10 +96,6 @@ class Game {
      * These three methods will check for collisions and if there are any, execute them
      */
     void ExecuteBallWallCollision();
-
-    void ExecuteBallUserBumperCollision();
-
-    void ExecuteBallCpuBumperCollision();
 
     void SetupNewRound();
 
