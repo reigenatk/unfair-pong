@@ -51,6 +51,8 @@ class Ball {
      */
     vec2 VelocityGivenTargetAndSpeed(vec2 target_pos, double desired_velocity_of_ball);
 
+
+
     /**
      * Resets the ball to a certain position, need to call this after each round ends
      */

@@ -50,7 +50,14 @@ class Game {
 
     double GetBottomWallY() const;
 
-    Ball GetBall() const;
+    Ball& GetBall();
+
+    // for testing
+    void SetBall(Ball test_ball);
+
+    void SetTopBumper(Bumper* test_bumper);
+
+    void SetBottomBumper(Bumper* test_bumper);
 
     /**
      * Generates random double between -param and param
@@ -77,6 +84,18 @@ class Game {
     Bumper* GetTopBumper();
 
     Bumper* GetBottomBumper();
+
+    size_t GetTopPlayerScore() const;
+
+    size_t GetBottomPlayerScore() const;
+
+    // testing
+
+    void SetTopPlayerScore(size_t score);
+
+    void SetBottomPlayerScore(size_t score);
+
+    void SetPointsToWin(size_t points);
 
     bool IsDifficultySelected() const;
 

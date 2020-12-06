@@ -31,6 +31,14 @@ Bumper* Game::GetBottomBumper() {
     return bottom_bumper;
 }
 
+size_t Game::GetTopPlayerScore() const {
+    return top_player_score_;
+}
+
+size_t Game::GetBottomPlayerScore() const {
+    return bottom_player_score_;
+}
+
 // this method is a little long mainly to avoid using unnecessary member variables
 void Game::SelectDifficulty(string difficulty) {
     string path = "../../../data/";
@@ -144,6 +152,7 @@ Game::Game(vec2 top_left, double length, double height) {
 }
 
 void Game::UpdateAll() {
+    // ball moves according to velocity, bumpers move according to mouse movement or CPU decision making
     UpdateBall();
     UpdateBumpers();
 
@@ -188,8 +197,32 @@ double Game::GetTopWallY() const {
     return top_left_corner_.y;
 }
 
-Ball Game::GetBall() const {
+Ball& Game::GetBall() {
     return ball_in_play;
+}
+
+void Game::SetBall(Ball test_ball) {
+    ball_in_play = test_ball;
+}
+
+void Game::SetBottomBumper(Bumper *test_bumper) {
+    bottom_bumper = test_bumper;
+}
+
+void Game::SetTopBumper(Bumper *test_bumper) {
+    top_bumper = test_bumper;
+}
+
+void Game::SetTopPlayerScore(size_t score) {
+    top_player_score_ = score;
+}
+
+void Game::SetBottomPlayerScore(size_t score) {
+    bottom_player_score_ = score;
+}
+
+void Game::SetPointsToWin(size_t points) {
+    points_to_win_ = points;
 }
 
 double Game::GenerateRandomDouble(double absolute_value_limit) {
