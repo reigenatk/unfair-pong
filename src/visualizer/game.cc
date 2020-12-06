@@ -3,6 +3,8 @@
 #include <math.h>
 #include <json.hpp>
 #include <string>
+#include <core/user_bumper.h>
+#include <core/cpu_bumper.h>
 
 using glm::vec2;
 using glm::dot;
@@ -21,12 +23,12 @@ Game::Game() {
 
 }
 
-UserBumper& Game::GetUserBumper() {
-    return user_bumper_;
+Bumper* Game::GetTopBumper() {
+    return top_bumper;
 }
 
-CpuBumper& Game::GetCpuBumper() {
-    return cpu_bumper_;
+Bumper* Game::GetBottomBumper() {
+    return bottom_bumper;
 }
 
 // this method is a little long mainly to avoid using unnecessary member variables
@@ -92,12 +94,15 @@ void Game::SelectDifficulty(string difficulty) {
     // that a user scored because the paddle isn't large enough to collide with ball in time
     double thickness_of_bumper = 30;
 
-    user_bumper_ = UserBumper(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetBottomWallY()),
-                              user_bumper_length_, color_of_user_bumper_,
-                              thickness_of_bumper, (float) GetLeftWallX(), (float) GetRightWallX(), user_smash_rate);
-    cpu_bumper_ = CpuBumper(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetTopWallY()), cpu_bumper_length_,
+    UserBumper c = UserBumper(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetBottomWallY()),
+                          user_bumper_length_, color_of_user_bumper_,
+                          thickness_of_bumper, (float) GetLeftWallX(), (float) GetRightWallX(), user_smash_rate);
+    bottom_bumper = &c;
+    CpuBumper d = CpuBumper(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetTopWallY()), cpu_bumper_length_,
                             color_of_cpu_bumper_, thickness_of_bumper, max_cpu_velocity_, float(GetLeftWallX()), (float) GetRightWallX(),
                             cpu_smash_rate, cpu_dizzy_rate, cpu_monkey_rate, cpu_brittle_rate, cpu_random_rate);
+    top_bumper = &d;
+
 
     // we have a certain range that will be the starting speed of the ball each round
     double starting_speed_of_ball = GenerateRandomDoubleBetween(starting_ball_velocity_floor_, starting_ball_velocity_cap_);
@@ -117,22 +122,22 @@ Game::Game(vec2 top_left, double length, double height) {
     is_round_running_ = false;
     is_difficulty_selected_ = false;
 
-    user_score_ = 0;
-    cpu_score_ = 0;
+    bottom_player_score_ = 0;
+    top_player_score_ = 0;
 
 }
 
 void Game::UpdateAll() {
     UpdateBall();
-    UpdateUserBumper();
-    UpdateCpuBumper();
+    UpdateBottomBumper();
+    UpdateTopBumper();
 
     CheckIfPlayerScored();
 
     ExecuteBallWallCollision();
-    ball_in_play.CollideWithBottomBumper(GetUserBumper(), (float) GetLeftWallX(),
+    ball_in_play.CollideWithBottomBumper(GetBottomBumper(), (float) GetLeftWallX(),
                                        (float) GetRightWallX(), (float) GetTopWallY(), (float) GetBottomWallY());
-    ball_in_play.CollideWithTopBumper(GetCpuBumper(), (float) GetLeftWallX(),
+    ball_in_play.CollideWithTopBumper(GetTopBumper(), (float) GetLeftWallX(),
                                       (float) GetRightWallX(), (float) GetTopWallY(), (float) GetBottomWallY());
 }
 
@@ -144,12 +149,12 @@ bool Game::IsRoundRunning() const {
     return is_round_running_;
 }
 
-bool Game::HasUserWon() const {
-    return (user_score_ == points_to_win_);
+bool Game::HasBottomPlayerWon() const {
+    return (bottom_player_score_ == points_to_win_);
 }
 
-bool Game::HasCpuWon() const {
-    return (cpu_score_ == points_to_win_);
+bool Game::HasTopPlayerWon() const {
+    return (top_player_score_ == points_to_win_);
 }
 
 double Game::GetLeftWallX() const {
@@ -255,33 +260,34 @@ void Game::DrawScore() const {
     float radius_of_ball_ = (float) ball_in_play.GetRadius();
     cinder::Color color_of_ball_ = ball_in_play.GetColor();
 
+    // bottom player score
     vec2 ball_center_1 = vec2(GetRightWallX(), GetBottomWallY());
     ball_center_1 += vec2(radius_of_ball_, -radius_of_ball_);
     float gap = 1;
     ball_center_1 += vec2(gap, 0);
 
-    for (size_t i = 0; i < user_score_; i++) {
+    for (size_t i = 0; i < bottom_player_score_; i++) {
         ci::gl::color(color_of_ball_);
         ci::gl::drawSolidCircle(ball_center_1, radius_of_ball_);
         ball_center_1 += vec2(0, -radius_of_ball_*2 - gap);
     }
     // draw the actual user score somewhere to the right of the visual
-    ci::gl::drawStringCentered(to_string(user_score_),
+    ci::gl::drawStringCentered(to_string(bottom_player_score_),
                                vec2(GetRightWallX() + 2*radius_of_ball_ + gap + 10, GetBottomWallY() + 30),
                                ci::Color("white"), ci::Font("Impact", 40));
 
-    // same with CPU score
+    // top player score
     vec2 ball_center_2 = vec2(GetRightWallX(), GetTopWallY());
     ball_center_2 += vec2(radius_of_ball_, radius_of_ball_);
     ball_center_2 += vec2(gap, 0);
 
-    for (size_t i = 0; i < cpu_score_; i++) {
+    for (size_t i = 0; i < top_player_score_; i++) {
         ci::gl::color(color_of_ball_);
         ci::gl::drawSolidCircle(ball_center_2, radius_of_ball_);
         ball_center_2 += vec2(0, radius_of_ball_*2 + gap);
     }
 
-    ci::gl::drawStringCentered(to_string(cpu_score_),
+    ci::gl::drawStringCentered(to_string(top_player_score_),
                                vec2(GetRightWallX() + 2*radius_of_ball_ + gap + 10, GetTopWallY() - 30),
                                ci::Color("white"), ci::Font("Impact", 40));
 }
@@ -297,8 +303,8 @@ void Game::Draw() {
 
     DrawScore();
 
-    cpu_bumper_.Draw();
-    user_bumper_.Draw();
+    bottom_bumper->Draw(false);
+    top_bumper->Draw(true);
     ball_in_play.Draw();
 
 }
@@ -314,8 +320,8 @@ void Game::SetupNewRound() {
     vec2 random_velocity = RandomVelocityGivenSpeed(starting_speed_of_ball, false);
 
     ball_in_play.ResetForNewRound(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, (GetTopWallY() + GetBottomWallY()) / 2.0), random_velocity);
-    cpu_bumper_.ResetForNewRound(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetTopWallY()));
-    user_bumper_.ResetForNewRound(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetBottomWallY()));
+    bottom_bumper->ResetForNewRound(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetTopWallY()));
+    top_bumper->ResetForNewRound(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetBottomWallY()));
 }
 
 void Game::StartNewRound() {
@@ -326,8 +332,8 @@ void Game::StartNewRound() {
 void Game::CheckIfPlayerScored() {
     vec2& current_ball_position = ball_in_play.GetPosition();
     if (current_ball_position.y > GetBottomWallY()) {
-        // CPU scored
-        cpu_score_++;
+        // if it reaches bottom, top player has scored
+        top_player_score_++;
         is_round_running_ = false;
 
         if (HasCpuWon()) {
@@ -338,8 +344,8 @@ void Game::CheckIfPlayerScored() {
         }
     }
     else if (current_ball_position.y < GetTopWallY()) {
-        // User scored
-        user_score_++;
+        // likewise for bottom player
+        bottom_player_score_++;
         is_round_running_ = false;
 
         if (HasUserWon()) {

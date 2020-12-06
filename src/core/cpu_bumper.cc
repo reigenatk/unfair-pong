@@ -56,15 +56,7 @@ void CpuBumper::MakeMovementDecision(const vec2& ball_position, const vec2& ball
     }
 }
 
-void CpuBumper::Draw() const {
-    ci::gl::color(bumper_color_);
-    vec2 top_left_corner_ = center_position_ + vec2(-length_of_bumper_ / 2.0, 0);
-    vec2 bottom_right_corner = center_position_ + vec2(length_of_bumper_ / 2.0, thickness_of_bumper_);
-    ci::Rectf pixel_bounding_box(top_left_corner_, bottom_right_corner);
-    ci::gl::drawSolidRect(pixel_bounding_box);
-}
-
-unfairpong::BallType CpuBumper::GenerateBallType() const {
+BallType CpuBumper::GenerateBallType() {
     if (Game::RollChance(cpu_smash_rate_)) {
         return Smash;
     }

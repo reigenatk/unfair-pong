@@ -27,6 +27,7 @@ public:
     void ResetForNewRound(const vec2& new_position);
     void ExecuteBrittleCollision(const vec2& ball_coords);
     virtual BallType GenerateBallType() = 0;
+    void Draw(bool is_top_bumper) const;
 
 protected:
     vec2 center_position_;

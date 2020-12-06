@@ -4,7 +4,7 @@
 #include "cinder/app/App.h"
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
-#include "bumper.h"
+#include <core/bumper.h>
 
 
 using std::pair;
@@ -71,17 +71,17 @@ class Game {
     /**
      * We use this getter for arrow controls.
      */
-    UserBumper& GetUserBumper();
+    Bumper* GetTopBumper();
 
-    CpuBumper& GetCpuBumper();
+    Bumper* GetBottomBumper();
 
     bool IsDifficultySelected() const;
 
     bool IsRoundRunning() const;
 
-    bool HasUserWon() const;
+    bool HasTopPlayerWon() const;
 
-    bool HasCpuWon() const;
+    bool HasBottomPlayerWon() const;
 
     /**
      * Looking at the positions of the ball and the walls, determine whether the player has scored
@@ -112,16 +112,10 @@ class Game {
      */
     void UpdateBall();
 
-    /**
-     * This method will update the location of the user bumper during one time step.
-     * The user bumper does have a velocity (if using arrow keys) so we kind of treat it like the ball
-     */
-    void UpdateUserBumper();
 
-    /**
-     * This method will calculate the new movements for the CPU bumper and make them accordingly
-     */
-    void UpdateCpuBumper();
+    void UpdateTopBumper();
+
+    void UpdateBottomBumper();
 
  private:
 
@@ -130,15 +124,17 @@ class Game {
     double height_;
 
     // these variables deal with game state
+    bool is_gamemode_selected_;
     bool is_difficulty_selected_;
     bool is_round_running_;
-    size_t user_score_;
-    size_t cpu_score_;
+    size_t bottom_player_score_;
+    size_t top_player_score_;
 
 
     Ball ball_in_play;
-    Bumper cpu_bumper_;
-    Bumper user_bumper_;
+    // need to store pointers since Bumper itself is an abstract class with 1 abstract method
+    Bumper* top_bumper;
+    Bumper* bottom_bumper;
 
     // points_to_win makes sense to be in this class
     size_t points_to_win_;

@@ -5,7 +5,7 @@
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
 #include "../../../../include/glm/glm.hpp"
-#include "ball.h"
+#include "bumper.h"
 
 using glm::vec2;
 
@@ -34,9 +34,7 @@ public:
      */
     void MakeMovementDecision(const vec2& ball_position, const vec2& ball_velocity);
 
-    void Draw() const;
-
-    unfairpong::BallType GenerateBallType() const;
+    BallType GenerateBallType() override;
 
 private:
     // fastest speed at which the bumper may travel

@@ -37,8 +37,8 @@ class Ball {
     /**
      * The following two methods execute any collisions, if they are colliding
      */
-    void CollideWithTopBumper(Bumper& top_bumper, float left_wall_x, float right_wall_x, float top_wall_y, float bottom_wall_y);
-    void CollideWithBottomBumper(Bumper& bottom_bumper, float left_wall_x, float right_wall_x, float top_wall_y, float bottom_wall_y);
+    void CollideWithTopBumper(Bumper* top_bumper, float left_wall_x, float right_wall_x, float top_wall_y, float bottom_wall_y);
+    void CollideWithBottomBumper(Bumper* bottom_bumper, float left_wall_x, float right_wall_x, float top_wall_y, float bottom_wall_y);
 
     /**
      * Resets all the effect variables to false. This is only ever be called after a collision occurs

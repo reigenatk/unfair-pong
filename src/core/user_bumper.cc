@@ -69,10 +69,6 @@ void UserBumper::ExecuteTimeStep() {
     }
 }
 
-double UserBumper::GetUserSmashRate() const {
-    return user_smash_rate_;
-}
-
 vec2 UserBumper::FartherCorner() const {
     if (center_position_.x - left_wall_ <= right_wall_ - center_position_.x) {
         return vec2(right_wall_, center_position_.y);
@@ -80,14 +76,6 @@ vec2 UserBumper::FartherCorner() const {
     else {
         return vec2(left_wall_, center_position_.y);
     }
-}
-
-void UserBumper::Draw() const {
-    ci::gl::color(bumper_color_);
-    vec2 top_left_corner_ = center_position_ + vec2(-length_of_bumper_ / 2.0, -thickness_of_bumper_);
-    vec2 bottom_right_corner = center_position_ + vec2(length_of_bumper_ / 2.0, 0);
-    ci::Rectf pixel_bounding_box(top_left_corner_, bottom_right_corner);
-    ci::gl::drawSolidRect(pixel_bounding_box);
 }
 
 void UserBumper::MoveBumperLeft() {
@@ -98,7 +86,7 @@ void UserBumper::MoveBumperRight() {
     horizontal_velocity_of_bumper += bumper_sensitivity_;
 }
 
-BallType UserBumper::GenerateBallType() const {
+BallType UserBumper::GenerateBallType() {
     if (Game::RollChance(user_smash_rate_)) {
         return Smash;
     }

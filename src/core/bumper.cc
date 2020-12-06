@@ -55,6 +55,23 @@ void Bumper::ExecuteBrittleCollision(const vec2 &ball_coords) {
     }
 }
 
+void Bumper::Draw(bool is_top_bumper) const {
+    if (is_top_bumper) {
+        ci::gl::color(bumper_color_);
+        vec2 top_left_corner_ = center_position_ + vec2(-length_of_bumper_ / 2.0, 0);
+        vec2 bottom_right_corner = center_position_ + vec2(length_of_bumper_ / 2.0, thickness_of_bumper_);
+        ci::Rectf pixel_bounding_box(top_left_corner_, bottom_right_corner);
+        ci::gl::drawSolidRect(pixel_bounding_box);
+    }
+    else {
+        ci::gl::color(bumper_color_);
+        vec2 top_left_corner_ = center_position_ + vec2(-length_of_bumper_ / 2.0, -thickness_of_bumper_);
+        vec2 bottom_right_corner = center_position_ + vec2(length_of_bumper_ / 2.0, 0);
+        ci::Rectf pixel_bounding_box(top_left_corner_, bottom_right_corner);
+        ci::gl::drawSolidRect(pixel_bounding_box);
+    }
+}
+
 void Bumper::ResetForNewRound(const vec2 &new_position) {
     center_position_ = new_position;
 

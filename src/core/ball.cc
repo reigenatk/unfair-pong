@@ -71,11 +71,11 @@ vec2 Ball::VelocityGivenTargetAndSpeed(vec2 target_pos, double desired_velocity_
     return ret;
 }
 
-void Ball::CollideWithBottomBumper(Bumper& bottom_bumper, float left_wall_x, float right_wall_x, float top_wall_y, float bottom_wall_y) {
+void Ball::CollideWithBottomBumper(Bumper* bottom_bumper, float left_wall_x, float right_wall_x, float top_wall_y, float bottom_wall_y) {
 
     // first check if its even  colliding
-    if (abs(position_.y - bottom_wall_y) < bottom_bumper.GetBumperThickness() + (float) (radius_ / 2.0) &&
-        abs(position_.x - bottom_bumper.GetBumperCenter().x) < (float) (bottom_bumper.GetBumperLength() / 2.0)) {
+    if (abs(position_.y - bottom_wall_y) < bottom_bumper->GetBumperThickness() + (float) (radius_ / 2.0) &&
+        abs(position_.x - bottom_bumper->GetBumperCenter().x) < (float) (bottom_bumper->GetBumperLength() / 2.0)) {
         // is colliding
     }
     else {
@@ -85,10 +85,10 @@ void Ball::CollideWithBottomBumper(Bumper& bottom_bumper, float left_wall_x, flo
 
     // if the ball colliding was a brittle ball, then we need to "break off" a part of the user bumper.
     if (type_of_ball_ == Brittle) {
-        bottom_bumper.ExecuteBrittleCollision(position_);
+        bottom_bumper->ExecuteBrittleCollision(position_);
     }
 
-    BallType next_ball_type = bottom_bumper.GenerateBallType();
+    BallType next_ball_type = bottom_bumper->GenerateBallType();
 
     if (next_ball_type == Smash) {
         // if smash ball
@@ -115,7 +115,7 @@ void Ball::CollideWithBottomBumper(Bumper& bottom_bumper, float left_wall_x, flo
 
 }
 
-void Ball::CollideWithTopBumper(Bumper& top_bumper, float left_wall_x, float right_wall_x, float top_wall_y, float bottom_wall_y) {
+void Ball::CollideWithTopBumper(Bumper* top_bumper, float left_wall_x, float right_wall_x, float top_wall_y, float bottom_wall_y) {
     // important note about effects, the ball can only have one effect at a time.
     // so there is no such thing as a dizzy smash ball for example- I've set up the logic here
     // so that its impossible to get both effects
@@ -123,15 +123,15 @@ void Ball::CollideWithTopBumper(Bumper& top_bumper, float left_wall_x, float rig
     // also as of now I am only assigning CPU the power to issue out monkey, dizzy, and brittle balls
     // while user can only issue out smash balls
 
-    if (abs(position_.y - top_wall_y) < top_bumper.GetBumperThickness() + (float) (radius_ / 2.0) &&
-        abs(position_.x - top_bumper.GetBumperCenter().x) < (float) (top_bumper.GetBumperLength() / 2.0)) {
+    if (abs(position_.y - top_wall_y) < top_bumper->GetBumperThickness() + (float) (radius_ / 2.0) &&
+        abs(position_.x - top_bumper->GetBumperCenter().x) < (float) (top_bumper->GetBumperLength() / 2.0)) {
         // is colliding
     }
     else {
         return;
     }
 
-    BallType next_ball_type = top_bumper.GenerateBallType();
+    BallType next_ball_type = top_bumper->GenerateBallType();
 
     if (next_ball_type == Smash) {
         // if smash ball

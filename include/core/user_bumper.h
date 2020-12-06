@@ -2,7 +2,6 @@
 #ifndef UNFAIR_PONG_USER_BUMPER_H
 #define UNFAIR_PONG_USER_BUMPER_H
 
-#include <cinder/Color.h>
 #include <core/bumper.h>
 #include "../../../../include/glm/glm.hpp"
 #include "cinder/app/App.h"
@@ -47,11 +46,7 @@ public:
      */
     void SteerBumperWithMouse(const vec2 &mouse_coords);
 
-    void Draw() const;
-
-    double GetUserSmashRate() const;
-
-    BallType GenerateBallType() const;
+    BallType GenerateBallType() override;
 
 private:
     // this member variable is unique to user_bumper, essentially the way I implemented left/right arrow key movement
