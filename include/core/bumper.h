@@ -29,6 +29,17 @@ public:
     virtual BallType GenerateBallType() = 0;
     void Draw(bool is_top_bumper) const;
 
+    // this is a method that only the CPU bumper will add to since the user bumper
+    // does not get controlled by anything but mouse
+    virtual void SmartMovement(vec2 ball_position, vec2 ball_velocity) = 0;
+    virtual void MouseMovement(vec2 mouse_coords) = 0;
+    /**
+     * Returns the vec2 coords of the corner that is further away from center of bumper
+     * so either (leftwall.x, bottomwall.y) or (rightwall.x, bottomwall.y)
+     * @return
+     */
+    vec2 FartherCorner() const;
+
 protected:
     vec2 center_position_;
     double length_of_bumper_;

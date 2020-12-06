@@ -56,6 +56,14 @@ void CpuBumper::MakeMovementDecision(const vec2& ball_position, const vec2& ball
     }
 }
 
+void CpuBumper::MouseMovement(vec2 mouse_coords) {
+    // do nothing
+}
+
+void CpuBumper::SmartMovement(vec2 ball_pos, vec2 ball_vel) {
+    MakeMovementDecision(ball_pos, ball_vel);
+}
+
 BallType CpuBumper::GenerateBallType() {
     if (Game::RollChance(cpu_smash_rate_)) {
         return Smash;

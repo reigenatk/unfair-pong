@@ -113,9 +113,7 @@ class Game {
     void UpdateBall();
 
 
-    void UpdateTopBumper();
-
-    void UpdateBottomBumper();
+    void UpdateBumpers();
 
  private:
 

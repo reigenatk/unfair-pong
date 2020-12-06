@@ -36,6 +36,10 @@ public:
 
     BallType GenerateBallType() override;
 
+    void SmartMovement(vec2 ball_pos, vec2 ball_vel) override;
+
+    void MouseMovement(vec2 mouse_coords) override;
+
 private:
     // fastest speed at which the bumper may travel
     float max_movement_speed_;

@@ -72,6 +72,15 @@ void Bumper::Draw(bool is_top_bumper) const {
     }
 }
 
+vec2 Bumper::FartherCorner() const {
+    if (center_position_.x - left_wall_ <= right_wall_ - center_position_.x) {
+        return vec2(right_wall_, center_position_.y);
+    }
+    else {
+        return vec2(left_wall_, center_position_.y);
+    }
+}
+
 void Bumper::ResetForNewRound(const vec2 &new_position) {
     center_position_ = new_position;
 

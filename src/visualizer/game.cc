@@ -94,14 +94,13 @@ void Game::SelectDifficulty(string difficulty) {
     // that a user scored because the paddle isn't large enough to collide with ball in time
     double thickness_of_bumper = 30;
 
-    UserBumper c = UserBumper(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetBottomWallY()),
+    bottom_bumper = new UserBumper(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetBottomWallY()),
                           user_bumper_length_, color_of_user_bumper_,
                           thickness_of_bumper, (float) GetLeftWallX(), (float) GetRightWallX(), user_smash_rate);
-    bottom_bumper = &c;
-    CpuBumper d = CpuBumper(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetTopWallY()), cpu_bumper_length_,
+
+    top_bumper = new CpuBumper(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetTopWallY()), cpu_bumper_length_,
                             color_of_cpu_bumper_, thickness_of_bumper, max_cpu_velocity_, float(GetLeftWallX()), (float) GetRightWallX(),
                             cpu_smash_rate, cpu_dizzy_rate, cpu_monkey_rate, cpu_brittle_rate, cpu_random_rate);
-    top_bumper = &d;
 
 
     // we have a certain range that will be the starting speed of the ball each round
@@ -129,8 +128,7 @@ Game::Game(vec2 top_left, double length, double height) {
 
 void Game::UpdateAll() {
     UpdateBall();
-    UpdateBottomBumper();
-    UpdateTopBumper();
+    UpdateBumpers();
 
     CheckIfPlayerScored();
 
@@ -320,8 +318,8 @@ void Game::SetupNewRound() {
     vec2 random_velocity = RandomVelocityGivenSpeed(starting_speed_of_ball, false);
 
     ball_in_play.ResetForNewRound(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, (GetTopWallY() + GetBottomWallY()) / 2.0), random_velocity);
-    bottom_bumper->ResetForNewRound(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetTopWallY()));
-    top_bumper->ResetForNewRound(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetBottomWallY()));
+    bottom_bumper->ResetForNewRound(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetBottomWallY()));
+    top_bumper->ResetForNewRound(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetTopWallY()));
 }
 
 void Game::StartNewRound() {
@@ -336,7 +334,7 @@ void Game::CheckIfPlayerScored() {
         top_player_score_++;
         is_round_running_ = false;
 
-        if (HasCpuWon()) {
+        if (HasTopPlayerWon()) {
             // do not set up new round
         }
         else {
@@ -348,7 +346,7 @@ void Game::CheckIfPlayerScored() {
         bottom_player_score_++;
         is_round_running_ = false;
 
-        if (HasUserWon()) {
+        if (HasBottomPlayerWon()) {
             // do not set up new round
         }
         else {
@@ -372,7 +370,19 @@ void Game::ExecuteBallWallCollision() {
 }
 
 void Game::UpdateBall() {
-    vec2 farthest_corner = user_bumper_.FartherCorner();
+    // this is one one of the four corners of the play area
+    // more specifically, its the corner which is furthest from the bumper which the ball is heading towards
+    vec2 farthest_corner;
+
+    // figure out which bumper the ball is headed towards..
+    if (ball_in_play.GetVelocity().y < 0) {
+        // ball is moving towards top bumper
+        farthest_corner = top_bumper->FartherCorner();
+    }
+    else {
+        farthest_corner = bottom_bumper->FartherCorner();
+    }
+
     // pass in the furthest point to the left or right such that ball will not collide with wall first
     // before I added this I was getting some weird bugs where the ball would get stuck in the corner
     if (farthest_corner.x == GetLeftWallX()) {
@@ -384,12 +394,9 @@ void Game::UpdateBall() {
     ball_in_play.UpdatePositionWithVelocity(farthest_corner);
 }
 
-void Game::UpdateCpuBumper() {
-    cpu_bumper_.MakeMovementDecision(ball_in_play.GetPosition(), ball_in_play.GetVelocity());
-}
-
-void Game::UpdateUserBumper() {
-    user_bumper_.ExecuteTimeStep();
+void Game::UpdateBumpers() {
+    bottom_bumper->SmartMovement(ball_in_play.GetPosition(), ball_in_play.GetVelocity());
+    top_bumper->SmartMovement(ball_in_play.GetPosition(), ball_in_play.GetVelocity());
 }
 
 }  // namespace visualizer

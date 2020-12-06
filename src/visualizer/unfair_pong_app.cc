@@ -36,7 +36,7 @@ void UnfairPongApp::setup() {
 void UnfairPongApp::update() {
 
     // if someone has won then stop updating
-    if (unfair_pong_instance.HasUserWon() || unfair_pong_instance.HasCpuWon()) {
+    if (unfair_pong_instance.HasTopPlayerWon() || unfair_pong_instance.HasBottomPlayerWon()) {
         return;
     }
 
@@ -93,12 +93,12 @@ void UnfairPongApp::draw() {
         ci::gl::draw(sad_emoji_, vec2(window_length_ / 2.0 + 100, 10));
 
         // start round message (or win screen if someone has won)
-        if (unfair_pong_instance.HasCpuWon()) {
+        if (unfair_pong_instance.HasTopPlayerWon()) {
             ci::gl::drawStringCentered("CPU wins!",
                                        vec2(window_length_ / 2.0, 150),
                                        ci::Color("white"), ci::Font("Helvetica", 15));
         }
-        else if (unfair_pong_instance.HasUserWon()) {
+        else if (unfair_pong_instance.HasBottomPlayerWon()) {
             ci::gl::drawStringCentered("You win!",
                                        vec2(window_length_ / 2.0, 150),
                                        ci::Color("white"), ci::Font("Helvetica", 15));
@@ -114,11 +114,11 @@ void UnfairPongApp::draw() {
 }
 
 void UnfairPongApp::mouseDown(ci::app::MouseEvent event) {
-    unfair_pong_instance.GetUserBumper().SteerBumperWithMouse(event.getPos());
+    unfair_pong_instance.GetBottomBumper()->MouseMovement(event.getPos());
 }
 
 void UnfairPongApp::mouseDrag(ci::app::MouseEvent event) {
-    unfair_pong_instance.GetUserBumper().SteerBumperWithMouse(event.getPos());
+    unfair_pong_instance.GetBottomBumper()->MouseMovement(event.getPos());
 }
 
 void UnfairPongApp::keyDown(ci::app::KeyEvent event) {
@@ -146,14 +146,6 @@ void UnfairPongApp::keyDown(ci::app::KeyEvent event) {
             if (unfair_pong_instance.IsDifficultySelected() == false) {
                 unfair_pong_instance.SelectDifficulty("unfair");
             }
-            break;
-        }
-        case ci::app::KeyEvent::KEY_RIGHT: {
-            unfair_pong_instance.GetUserBumper().MoveBumperRight();
-            break;
-        }
-        case ci::app::KeyEvent::KEY_LEFT: {
-            unfair_pong_instance.GetUserBumper().MoveBumperLeft();
             break;
         }
         case ci::app::KeyEvent::KEY_SPACE: {
