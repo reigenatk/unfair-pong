@@ -12,24 +12,16 @@ Ball::Ball() {
 
 }
 
-Ball::Ball(vec2 starting_position, vec2 starting_velocity, cinder::Color color,
-           double radius, double user_smash_rate, double cpu_smash_rate, double cpu_dizzy_rate,
-           double cpu_monkey_rate, double cpu_brittle_rate, double difficulty_increment) {
+Ball::Ball(vec2 starting_position, vec2 starting_velocity, cinder::Color color, double radius, double difficulty_increment) {
     position_ = starting_position;
     velocity_ = starting_velocity;
     color_ = color;
     radius_ = radius;
-    user_smash_rate_ = user_smash_rate;
-    cpu_smash_rate_ = cpu_smash_rate;
-    difficulty_increment_ = difficulty_increment;
 
     max_ball_velocity = 20; // can tweak this but I found 20 to work ok
     smash_velocity_increase_ = 10; // just how much faster does the ball get on a smash hit
-    cpu_dizzy_rate_ = cpu_dizzy_rate;
-    cpu_monkey_rate_ = cpu_monkey_rate;
-    cpu_brittle_rate_ = cpu_brittle_rate;
+    difficulty_increment_ = difficulty_increment;
 
-    effect_image_ = nullptr;
     ResetAllEffects();
 }
 
@@ -49,14 +41,6 @@ cinder::Color Ball::GetColor() const {
     return color_;
 }
 
-void Ball::ChangeIntoRandomColor() {
-    double r = Game::GenerateRandomDoubleBetween(0, 1);
-    double g = Game::GenerateRandomDoubleBetween(0, 1);
-    double b = Game::GenerateRandomDoubleBetween(0, 1);
-
-    color_ = cinder::Color((float) r, (float) g, (float) b);
-}
-
 void Ball::ResetForNewRound(vec2 new_position, vec2 new_velocity) {
     position_ = new_position;
     velocity_ = new_velocity;
@@ -64,10 +48,13 @@ void Ball::ResetForNewRound(vec2 new_position, vec2 new_velocity) {
 }
 
 void Ball::ResetAllEffects() {
-    is_smash_ball_ = false;
-    is_dizzy_ball_ = false;
-    is_monkey_ball_ = false;
-    is_brittle_ball_ = false;
+    type_of_ball_ = Normal;
+
+    // set these two params back to normal so that next time we roll a random ball they will be correct
+    frames_elapsed_ = 0;
+    frames_until_random_ = 10; // can change this- basically dictates how often a random jerk occurs (when we roll a random ball)
+
+    // im using nullpointer here to indicate when there is NO effect image (aka a normal ball)
     effect_image_ = nullptr;
 }
 
@@ -84,11 +71,11 @@ vec2 Ball::VelocityGivenTargetAndSpeed(vec2 target_pos, double desired_velocity_
     return ret;
 }
 
-void Ball::CollideWithUserBumper(UserBumper& user_bumper, float left_wall_x, float right_wall_x, float top_wall_y, float bottom_wall_y) {
+void Ball::CollideWithBottomBumper(Bumper& bottom_bumper, float left_wall_x, float right_wall_x, float top_wall_y, float bottom_wall_y) {
 
     // first check if its even  colliding
-    if (abs(position_.y - bottom_wall_y) < user_bumper.GetBumperThickness() + (float) (radius_ / 2.0) &&
-        abs(position_.x - user_bumper.GetBumperCenter().x) < (float) (user_bumper.GetBumperLength() / 2.0)) {
+    if (abs(position_.y - bottom_wall_y) < bottom_bumper.GetBumperThickness() + (float) (radius_ / 2.0) &&
+        abs(position_.x - bottom_bumper.GetBumperCenter().x) < (float) (bottom_bumper.GetBumperLength() / 2.0)) {
         // is colliding
     }
     else {
@@ -97,48 +84,26 @@ void Ball::CollideWithUserBumper(UserBumper& user_bumper, float left_wall_x, flo
     }
 
     // if the ball colliding was a brittle ball, then we need to "break off" a part of the user bumper.
-    if (is_brittle_ball_) {
-        if (position_.x >= user_bumper.GetBumperCenter().x) {
-            // if the ball landed on the right side of the bumper
-
-            vec2 new_bumper_left = user_bumper.GetBumperCenter() + vec2(-user_bumper.GetBumperLength() / 2.0, 0);
-            vec2 new_bumper_right = vec2(position_.x, user_bumper.GetBumperCenter().y);
-            double amount_to_break = user_bumper.GetBumperCenter().x + (user_bumper.GetBumperLength() / 2.0) - position_.x;
-            user_bumper.SetBumperLength(user_bumper.GetBumperLength() - amount_to_break);
-
-            vec2 new_center = new_bumper_left + new_bumper_right;
-            new_center.x /= 2.0;
-            new_center.y /= 2.0;
-            user_bumper.SetBumperCenter(new_center);
-        }
-        else {
-            // if the ball landed on the left side of the bumper
-            vec2 new_bumper_left = vec2(position_.x, user_bumper.GetBumperCenter().y);
-            vec2 new_bumper_right = user_bumper.GetBumperCenter() + vec2(user_bumper.GetBumperLength() / 2.0, 0);
-            double amount_to_break = position_.x - (user_bumper.GetBumperCenter().x - (user_bumper.GetBumperLength() / 2.0));
-            user_bumper.SetBumperLength(user_bumper.GetBumperLength() - amount_to_break);
-
-            vec2 new_center = new_bumper_left + new_bumper_right;
-            new_center.x /= 2.0;
-            new_center.y /= 2.0;
-            user_bumper.SetBumperCenter(new_center);
-        }
+    if (type_of_ball_ == Brittle) {
+        bottom_bumper.ExecuteBrittleCollision(position_);
     }
 
-    if (Game::RollChance(user_smash_rate_)) {
+    BallType next_ball_type = bottom_bumper.GenerateBallType();
+
+    if (next_ball_type == Smash) {
         // if smash ball
 
         double target_x_location = Game::GenerateRandomDoubleBetween(left_wall_x, right_wall_x);
         double velocity_of_ball = fmin(max_ball_velocity, length(velocity_) + smash_velocity_increase_);
         velocity_ = VelocityGivenTargetAndSpeed(vec2(target_x_location, top_wall_y), velocity_of_ball);
         ResetAllEffects();
-        is_smash_ball_ = true;
+        type_of_ball_ = Smash;
     }
     else {
         // if last ball was smash ball, slow down the velocity by however much the previous smash increased it
         // kind of like how receiving a tennis serve will slow the ball down to a slower speed
         double new_velocity;
-        if (is_smash_ball_) {
+        if (next_ball_type == Smash) {
             new_velocity = fmin(max_ball_velocity, length(velocity_) + difficulty_increment_ - smash_velocity_increase_);
         } else {
             new_velocity = fmin(max_ball_velocity, length(velocity_) + difficulty_increment_);
@@ -150,54 +115,61 @@ void Ball::CollideWithUserBumper(UserBumper& user_bumper, float left_wall_x, flo
 
 }
 
-void Ball::CollideWithCpuBumper(CpuBumper& cpu_bumper, float left_wall_x, float right_wall_x, float top_wall_y, float bottom_wall_y) {
+void Ball::CollideWithTopBumper(Bumper& top_bumper, float left_wall_x, float right_wall_x, float top_wall_y, float bottom_wall_y) {
     // important note about effects, the ball can only have one effect at a time.
     // so there is no such thing as a dizzy smash ball for example- I've set up the logic here
     // so that its impossible to get both effects
 
     // also as of now I am only assigning CPU the power to issue out monkey, dizzy, and brittle balls
+    // while user can only issue out smash balls
 
-    if (abs(position_.y - top_wall_y) < cpu_bumper.GetBumperThickness() + (float) (radius_ / 2.0) &&
-        abs(position_.x - cpu_bumper.GetBumperCenter().x) < (float) (cpu_bumper.GetBumperLength() / 2.0)) {
+    if (abs(position_.y - top_wall_y) < top_bumper.GetBumperThickness() + (float) (radius_ / 2.0) &&
+        abs(position_.x - top_bumper.GetBumperCenter().x) < (float) (top_bumper.GetBumperLength() / 2.0)) {
         // is colliding
     }
     else {
         return;
     }
 
-    if (Game::RollChance(cpu_smash_rate_)) {
+    BallType next_ball_type = top_bumper.GenerateBallType();
+
+    if (next_ball_type == Smash) {
         // if smash ball
         double target_x_location = Game::GenerateRandomDoubleBetween(left_wall_x, right_wall_x);
         double velocity_of_ball = fmin(max_ball_velocity, length(velocity_) + smash_velocity_increase_);
         velocity_ = VelocityGivenTargetAndSpeed(vec2(target_x_location, bottom_wall_y), velocity_of_ball);
-        is_smash_ball_ = true;
+        type_of_ball_ = Smash;
     }
     else {
 
         double new_velocity;
-        if (is_smash_ball_) {
+        if (next_ball_type == Smash) {
             // if last ball was smash ball
             new_velocity = fmin(max_ball_velocity, length(velocity_) + difficulty_increment_ - smash_velocity_increase_);
         } else {
             new_velocity = fmin(max_ball_velocity, length(velocity_) + difficulty_increment_);
         }
 
-        if (Game::RollChance(cpu_dizzy_rate_)) {
+        if (next_ball_type == Dizzy) {
             // if cpu gets dizzy ball
             ResetAllEffects();
-            is_dizzy_ball_ = true;
+            type_of_ball_ = Dizzy;
         }
-        else if (Game::RollChance(cpu_monkey_rate_)) {
+        else if (next_ball_type == Monkey) {
             // if cpu gets monkey ball
             ResetAllEffects();
-            is_monkey_ball_ = true;
+            type_of_ball_ = Monkey;
         }
-        else if (Game::RollChance(cpu_brittle_rate_)) {
+        else if (next_ball_type == Brittle) {
             ResetAllEffects();
-            is_brittle_ball_ = true;
+            type_of_ball_ = Brittle;
+        }
+        else if (next_ball_type = Random) {
+            ResetAllEffects();
+            type_of_ball_ = Random;
         }
         else {
-            // if no effect
+            // will set type of ball to Normal
             ResetAllEffects();
         }
         velocity_ = Game::RandomVelocityGivenSpeed(new_velocity,
@@ -211,7 +183,7 @@ void Ball::Draw() {
     // on the efficiency- so I set a member variable called effect_image_
     // to nullptr after each collision and load in the necessary image once
     // on the first frame
-    if (is_smash_ball_) {
+    if (type_of_ball_ == Smash) {
         ci::gl::color(ci::Color("white"));
         if (effect_image_ == nullptr) {
             effect_image_ = cinder::gl::Texture2d::create
@@ -219,7 +191,7 @@ void Ball::Draw() {
         }
         ci::gl::draw(effect_image_, position_);
     }
-    else if (is_dizzy_ball_) {
+    else if (type_of_ball_ == Dizzy) {
         ci::gl::color(ci::Color("white"));
         if (effect_image_ == nullptr) {
             effect_image_ = cinder::gl::Texture2d::create
@@ -227,7 +199,7 @@ void Ball::Draw() {
         }
         ci::gl::draw(effect_image_, position_);
     }
-    else if (is_monkey_ball_) {
+    else if (type_of_ball_ == Monkey) {
         ci::gl::color(ci::Color("white"));
         if (effect_image_ == nullptr) {
             effect_image_ = cinder::gl::Texture2d::create
@@ -235,11 +207,19 @@ void Ball::Draw() {
         }
         ci::gl::draw(effect_image_, position_);
     }
-    else if (is_brittle_ball_) {
+    else if (type_of_ball_ == Brittle) {
         ci::gl::color(ci::Color("white"));
         if (effect_image_ == nullptr) {
             effect_image_ = cinder::gl::Texture2d::create
                     (cinder::loadImage("../../../data/brittle.png"));
+        }
+        ci::gl::draw(effect_image_, position_);
+    }
+    else if (type_of_ball_ == Random) {
+        ci::gl::color(ci::Color("white"));
+        if (effect_image_ == nullptr) {
+            effect_image_ = cinder::gl::Texture2d::create
+                    (cinder::loadImage("../../../data/random.png"));
         }
         ci::gl::draw(effect_image_, position_);
     }
@@ -248,16 +228,44 @@ void Ball::Draw() {
 }
 
 void Ball::UpdatePositionWithVelocity(vec2 farther_user_corner) {
+    frames_elapsed_++;
     position_ += velocity_;
 
     double dizziness = 1; // can adjust this, basically how much the ball wavers around
-    if (is_dizzy_ball_) {
+    if (type_of_ball_ == Dizzy) {
         velocity_ += vec2(Game::GenerateRandomDouble(dizziness), 0);
     }
-
-    if (is_monkey_ball_) {
+    if (type_of_ball_ == Monkey) {
         velocity_ = VelocityGivenTargetAndSpeed(farther_user_corner, length(velocity_));
     }
+    if (type_of_ball_ == Random && frames_elapsed_ == frames_until_random_) {
+        // do a "jerk" of motion
+
+        // figure out what the y velocity is, we don't want to change that
+        // in other words ball should always be heading towards other player
+        bool positive_y_velocity;
+        if (velocity_.y < 0) {
+            positive_y_velocity = false;
+        }
+        else {
+            positive_y_velocity = true;
+        }
+
+        // add a little bit of speed with each jerk of motion
+        double speed_increment_per_jerk = 0.4;
+        vec2 new_velocity = Game::RandomVelocityGivenSpeed(length(velocity_) + speed_increment_per_jerk, positive_y_velocity);
+
+        velocity_ = new_velocity;
+
+        // for now I'm making the number of frames elapsed until a random jerk occurs, go up by 2 each time
+        // so it starts 50, 52, 54, ...
+        // can change this of course
+
+        size_t jerk_increment = 2;
+        frames_until_random_ += jerk_increment;
+        frames_elapsed_ = 0;
+    }
+
 }
 
 }

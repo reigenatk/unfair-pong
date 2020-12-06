@@ -54,6 +54,7 @@ void Game::SelectDifficulty(string difficulty) {
     double cpu_dizzy_rate;
     double cpu_monkey_rate;
     double cpu_brittle_rate;
+    double cpu_random_rate;
 
     radius_of_ball_ = j["radius_of_ball_"];
     points_to_win_ = j["points_to_win_"];
@@ -81,6 +82,7 @@ void Game::SelectDifficulty(string difficulty) {
     cpu_dizzy_rate = j["cpu_dizzy_rate"];
     cpu_monkey_rate = j["cpu_monkey_rate"];
     cpu_brittle_rate = j["cpu_brittle_rate"];
+    cpu_random_rate = j["cpu_random_rate"];
 
     // now create all the objects and set game to running, now that we have selected a difficulty!
 
@@ -92,9 +94,10 @@ void Game::SelectDifficulty(string difficulty) {
 
     user_bumper_ = UserBumper(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetBottomWallY()),
                               user_bumper_length_, color_of_user_bumper_,
-                              thickness_of_bumper, (float) GetLeftWallX(), (float) GetRightWallX());
+                              thickness_of_bumper, (float) GetLeftWallX(), (float) GetRightWallX(), user_smash_rate);
     cpu_bumper_ = CpuBumper(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetTopWallY()), cpu_bumper_length_,
-                            color_of_cpu_bumper_, thickness_of_bumper, max_cpu_velocity_, float(GetLeftWallX()), (float) GetRightWallX());
+                            color_of_cpu_bumper_, thickness_of_bumper, max_cpu_velocity_, float(GetLeftWallX()), (float) GetRightWallX(),
+                            cpu_smash_rate, cpu_dizzy_rate, cpu_monkey_rate, cpu_brittle_rate, cpu_random_rate);
 
     // we have a certain range that will be the starting speed of the ball each round
     double starting_speed_of_ball = GenerateRandomDoubleBetween(starting_ball_velocity_floor_, starting_ball_velocity_cap_);
@@ -104,8 +107,7 @@ void Game::SelectDifficulty(string difficulty) {
     vec2 random_velocity = RandomVelocityGivenSpeed(starting_speed_of_ball, false);
 
     ball_in_play = Ball(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, (GetTopWallY() + GetBottomWallY()) / 2.0),
-                        random_velocity, color_of_ball_, radius_of_ball_,
-                        user_smash_rate, cpu_smash_rate, cpu_dizzy_rate, cpu_monkey_rate, cpu_brittle_rate, difficulty_increment_);
+                        random_velocity, color_of_ball_, radius_of_ball_, difficulty_increment_);
 }
 
 Game::Game(vec2 top_left, double length, double height) {
@@ -128,9 +130,9 @@ void Game::UpdateAll() {
     CheckIfPlayerScored();
 
     ExecuteBallWallCollision();
-    ball_in_play.CollideWithUserBumper(GetUserBumper(), (float) GetLeftWallX(),
+    ball_in_play.CollideWithBottomBumper(GetUserBumper(), (float) GetLeftWallX(),
                                        (float) GetRightWallX(), (float) GetTopWallY(), (float) GetBottomWallY());
-    ball_in_play.CollideWithCpuBumper(GetCpuBumper(), (float) GetLeftWallX(),
+    ball_in_play.CollideWithTopBumper(GetCpuBumper(), (float) GetLeftWallX(),
                                       (float) GetRightWallX(), (float) GetTopWallY(), (float) GetBottomWallY());
 }
 

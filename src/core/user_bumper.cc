@@ -2,6 +2,9 @@
 #include <core/user_bumper.h>
 #include <iostream>
 #include <cinder/gl/gl.h>
+#include <visualizer/game.h>
+
+using unfairpong::visualizer::Game;
 
 using std::cout;
 
@@ -12,15 +15,17 @@ UserBumper::UserBumper() {
 }
 
 UserBumper::UserBumper(vec2 center_position, double length_of_bumper, cinder::Color color,
-                       double thickness, float left_wall, float right_wall):
+                       double thickness, float left_wall, float right_wall, double user_smash_rate):
                        Bumper(center_position, length_of_bumper, color, thickness, left_wall, right_wall) {
     horizontal_velocity_of_bumper = 0;
+    user_smash_rate_ = user_smash_rate;
 
-
-    // this value is basically how sensitive bumper is to left or right keys
+    // this value is basically how sensitive bumper is to left or right arrow keys
     // not sure which value is best so I just left it here
     bumper_sensitivity_ = 3.0;
 }
+
+
 
 void UserBumper::SteerBumperWithMouse(const vec2 &mouse_coords) {
     // also do a reset on the velocity here- otherwise bumper will keep moving
@@ -64,7 +69,11 @@ void UserBumper::ExecuteTimeStep() {
     }
 }
 
-vec2 UserBumper::FartherCorner() {
+double UserBumper::GetUserSmashRate() const {
+    return user_smash_rate_;
+}
+
+vec2 UserBumper::FartherCorner() const {
     if (center_position_.x - left_wall_ <= right_wall_ - center_position_.x) {
         return vec2(right_wall_, center_position_.y);
     }
@@ -87,6 +96,15 @@ void UserBumper::MoveBumperLeft() {
 
 void UserBumper::MoveBumperRight() {
     horizontal_velocity_of_bumper += bumper_sensitivity_;
+}
+
+BallType UserBumper::GenerateBallType() const {
+    if (Game::RollChance(user_smash_rate_)) {
+        return Smash;
+    }
+    else {
+        return Normal;
+    }
 }
 
 }

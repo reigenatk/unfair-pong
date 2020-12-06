@@ -5,7 +5,7 @@
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
 #include "../../../../include/glm/glm.hpp"
-#include <core/bumper.h>
+#include "ball.h"
 
 using glm::vec2;
 
@@ -19,9 +19,11 @@ public:
     /**
      * Parameters are the same as in user_bumper constructor except for max_movement_speed
      * which is a bound on how fast the cpu bumper can travel (so that user can beat cpu)
+     * We also include information about rates for each kind of ball to spawn
      */
     CpuBumper(vec2 center_position, double length_of_bumper, cinder::Color color, double thickness,
-              float max_movement_speed, float left_wall, float right_wall);
+              float max_movement_speed, float left_wall, float right_wall, double cpu_smash_rate,
+              double cpu_dizzy_rate, double cpu_monkey_rate, double cpu_brittle_rate, double cpu_random_rate);
 
 
     /**
@@ -34,9 +36,16 @@ public:
 
     void Draw() const;
 
+    unfairpong::BallType GenerateBallType() const;
+
 private:
     // fastest speed at which the bumper may travel
     float max_movement_speed_;
+    double cpu_smash_rate_;
+    double cpu_dizzy_rate_;
+    double cpu_monkey_rate_;
+    double cpu_brittle_rate_;
+    double cpu_random_rate_;
 
 };
 

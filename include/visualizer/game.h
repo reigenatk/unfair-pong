@@ -4,8 +4,7 @@
 #include "cinder/app/App.h"
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
-#include <core/cpu_bumper.h>
-#include <core/user_bumper.h>
+#include "bumper.h"
 
 
 using std::pair;
@@ -84,6 +83,10 @@ class Game {
 
     bool HasCpuWon() const;
 
+    /**
+     * Looking at the positions of the ball and the walls, determine whether the player has scored
+     * and if they have, stop the current round and award the winning player a point
+     */
     void CheckIfPlayerScored();
 
     /**
@@ -97,6 +100,9 @@ class Game {
      */
     void ExecuteBallWallCollision();
 
+    /**
+     * Place the ball back in the center, along with bumpers. Assign the ball a new random starting velocity
+     */
     void SetupNewRound();
 
     void StartNewRound();
@@ -131,8 +137,8 @@ class Game {
 
 
     Ball ball_in_play;
-    CpuBumper cpu_bumper_;
-    UserBumper user_bumper_;
+    Bumper cpu_bumper_;
+    Bumper user_bumper_;
 
     // points_to_win makes sense to be in this class
     size_t points_to_win_;

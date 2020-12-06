@@ -5,8 +5,9 @@
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
 #include "../../../../include/glm/glm.hpp"
-using glm::vec2;
+#include "balltype.h"
 
+using glm::vec2;
 
 namespace unfairpong {
 
@@ -17,13 +18,15 @@ public:
     Bumper(vec2 center_position, double length_of_bumper, cinder::Color color,
            double thickness, float left_wall, float right_wall);
 
-    double GetBumperThickness();
+    double GetBumperThickness() const;
     vec2& GetBumperCenter();
-    double GetBumperLength();
-    void SetBumperLength(double new_length);
-    void SetBumperCenter(vec2 new_center);
-    void ResetForNewRound(const vec2& new_position);
+    double GetBumperLength() const;
 
+    // get rid of setters and replace with brittle collision method
+
+    void ResetForNewRound(const vec2& new_position);
+    void ExecuteBrittleCollision(const vec2& ball_coords);
+    virtual BallType GenerateBallType() = 0;
 
 protected:
     vec2 center_position_;

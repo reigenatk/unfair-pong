@@ -17,7 +17,7 @@ class UserBumper: public Bumper {
 public:
     UserBumper();
     UserBumper(vec2 center_position, double length_of_bumper, cinder::Color color,
-               double thickness, float left_wall, float right_wall);
+               double thickness, float left_wall, float right_wall, double user_smash_rate_);
 
 
     /**
@@ -38,7 +38,7 @@ public:
      * so either (leftwall.x, bottomwall.y) or (rightwall.x, bottomwall.y)
      * @return
      */
-    vec2 FartherCorner();
+    vec2 FartherCorner() const;
 
 
     /**
@@ -49,6 +49,10 @@ public:
 
     void Draw() const;
 
+    double GetUserSmashRate() const;
+
+    BallType GenerateBallType() const;
+
 private:
     // this member variable is unique to user_bumper, essentially the way I implemented left/right arrow key movement
     // is that it adds a velocity left or right, and that it deccelerates at a constant value over time
@@ -56,7 +60,7 @@ private:
     float horizontal_velocity_of_bumper;
 
     float bumper_sensitivity_;
-
+    double user_smash_rate_;
 };
 
 }

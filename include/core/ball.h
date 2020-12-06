@@ -9,8 +9,7 @@
 #include <cinder/gl/gl.h>
 #include "cinder/app/App.h"
 #include "cinder/app/RendererGl.h"
-#include "user_bumper.h"
-#include "cpu_bumper.h"
+#include "bumper.h"
 
 using glm::vec2;
 
@@ -20,9 +19,7 @@ class Ball {
     public:
 
     Ball();
-    Ball(vec2 starting_position, vec2 starting_velocity, cinder::Color color,
-         double radius, double user_smash_rate, double cpu_smash_rate, double cpu_dizzy_rate, double cpu_monkey_rate,
-         double cpu_brittle_rate, double difficulty_increment);
+    Ball(vec2 starting_position, vec2 starting_velocity, cinder::Color color, double radius, double difficulty_increment_);
 
     vec2& GetPosition();
     vec2& GetVelocity();
@@ -30,16 +27,22 @@ class Ball {
     cinder::Color GetColor() const;
 
     void Draw();
+
+    /**
+     * Update the new position of the ball, called every tick
+     * @param farther_user_corner For the monkey ball, we must know which direction the ball ought to travel at any moment so we pass this in
+     */
     void UpdatePositionWithVelocity(vec2 farther_user_corner);
-    void ChangeIntoRandomColor();
 
     /**
      * The following two methods execute any collisions, if they are colliding
      */
-    void CollideWithUserBumper(UserBumper& user_bumper, float left_wall_x, float right_wall_x, float top_wall_y, float bottom_wall_y);
-    void CollideWithCpuBumper(CpuBumper& cpu_bumper, float left_wall_x, float right_wall_x, float top_wall_y, float bottom_wall_y);
+    void CollideWithTopBumper(Bumper& top_bumper, float left_wall_x, float right_wall_x, float top_wall_y, float bottom_wall_y);
+    void CollideWithBottomBumper(Bumper& bottom_bumper, float left_wall_x, float right_wall_x, float top_wall_y, float bottom_wall_y);
 
-    // reset all the effect variables to false
+    /**
+     * Resets all the effect variables to false. This is only ever be called after a collision occurs
+     */
     void ResetAllEffects();
 
     /**
@@ -58,26 +61,20 @@ class Ball {
     vec2 velocity_;
     cinder::Color color_;
     double radius_;
+    BallType type_of_ball_;
 
-    // a smash ball goes adds more velocity than usual onto the ball
-    // it also does NOT collide with a wall, instead travels straight towards the goal
+    // here are some general pieces of info about collisions that don't really belong to a specific bumper
     double smash_velocity_increase_;
-    double user_smash_rate_;
-    double cpu_smash_rate_;
-    bool is_smash_ball_;
-    double cpu_dizzy_rate_;
-    bool is_dizzy_ball_;
-    double cpu_monkey_rate_;
-    bool is_monkey_ball_;
-    double cpu_brittle_rate_;
-    bool is_brittle_ball_;
-
-    // how much faster the ball gets with each consecutive bumper collision
+    double frames_elapsed_;
+    double frames_until_random_;
+    // how much faster the ball gets with each consecutive bumper collision (this is regardless of what kind of ball it is)
     double difficulty_increment_;
 
     // the fastest a ball can travel, need this because once the ball starts going too fast
-    // collisions stop working
+    // collisions stop working and balls start going through bumpers
     float max_ball_velocity;
+
+    // the image to accompany the ball if the ball isn't normal
     cinder::gl::Texture2dRef effect_image_;
 };
 
