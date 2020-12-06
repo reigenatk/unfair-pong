@@ -94,13 +94,26 @@ void Game::SelectDifficulty(string difficulty) {
     // that a user scored because the paddle isn't large enough to collide with ball in time
     double thickness_of_bumper = 30;
 
-    bottom_bumper = new UserBumper(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetBottomWallY()),
-                          user_bumper_length_, color_of_user_bumper_,
-                          thickness_of_bumper, (float) GetLeftWallX(), (float) GetRightWallX(), user_smash_rate);
+    // allocate the memory address on the heap for two new bumpers
+    // and set them equal to our member variables
+    if (game_mode_ == UserVsCPU) {
+        bottom_bumper = new UserBumper(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetBottomWallY()),
+                                       user_bumper_length_, color_of_user_bumper_,
+                                       thickness_of_bumper, (float) GetLeftWallX(), (float) GetRightWallX(), user_smash_rate);
 
-    top_bumper = new CpuBumper(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetTopWallY()), cpu_bumper_length_,
-                            color_of_cpu_bumper_, thickness_of_bumper, max_cpu_velocity_, float(GetLeftWallX()), (float) GetRightWallX(),
-                            cpu_smash_rate, cpu_dizzy_rate, cpu_monkey_rate, cpu_brittle_rate, cpu_random_rate);
+        top_bumper = new CpuBumper(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetTopWallY()), cpu_bumper_length_,
+                                   color_of_cpu_bumper_, thickness_of_bumper, max_cpu_velocity_, float(GetLeftWallX()), (float) GetRightWallX(),
+                                   cpu_smash_rate, cpu_dizzy_rate, cpu_monkey_rate, cpu_brittle_rate, cpu_random_rate);
+    }
+    else if (game_mode_ == CPUVsCPU) {
+        bottom_bumper = new CpuBumper(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetBottomWallY()), cpu_bumper_length_,
+                                   color_of_cpu_bumper_, thickness_of_bumper, max_cpu_velocity_, float(GetLeftWallX()), (float) GetRightWallX(),
+                                   cpu_smash_rate, cpu_dizzy_rate, cpu_monkey_rate, cpu_brittle_rate, cpu_random_rate);
+
+        top_bumper = new CpuBumper(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetTopWallY()), cpu_bumper_length_,
+                                   color_of_cpu_bumper_, thickness_of_bumper, max_cpu_velocity_, float(GetLeftWallX()), (float) GetRightWallX(),
+                                   cpu_smash_rate, cpu_dizzy_rate, cpu_monkey_rate, cpu_brittle_rate, cpu_random_rate);
+    }
 
 
     // we have a certain range that will be the starting speed of the ball each round
@@ -112,6 +125,10 @@ void Game::SelectDifficulty(string difficulty) {
 
     ball_in_play = Ball(vec2((GetLeftWallX() + GetRightWallX()) / 2.0, (GetTopWallY() + GetBottomWallY()) / 2.0),
                         random_velocity, color_of_ball_, radius_of_ball_, difficulty_increment_);
+}
+
+void Game::SelectGameMode(GameMode g) {
+    game_mode_ = g;
 }
 
 Game::Game(vec2 top_left, double length, double height) {
@@ -249,7 +266,7 @@ vec2 Game::RandomVelocityGivenSpeed(double speed_desired, bool positive_y_veloci
 }
 
 void Game::DrawInstructions() const {
-    ci::gl::drawStringCentered("Control with arrow keys OR dragging mouse",
+    ci::gl::drawStringCentered("Control by dragging mouse",
                                vec2((GetLeftWallX() + GetRightWallX()) / 2.0, GetBottomWallY() + 20),
                                ci::Color("pink"), ci::Font("Epilogue", 30));
 }

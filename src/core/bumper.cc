@@ -10,6 +10,7 @@ Bumper::Bumper(vec2 center_position, double length_of_bumper, cinder::Color colo
                float left_wall, float right_wall) {
     center_position_ = center_position;
     length_of_bumper_ = length_of_bumper;
+    original_length_of_bumper = length_of_bumper;
     bumper_color_ = color;
     thickness_of_bumper_ = thickness;
     left_wall_ = left_wall;
@@ -83,7 +84,7 @@ vec2 Bumper::FartherCorner() const {
 
 void Bumper::ResetForNewRound(const vec2 &new_position) {
     center_position_ = new_position;
-
+    length_of_bumper_ = original_length_of_bumper;
 }
 
 

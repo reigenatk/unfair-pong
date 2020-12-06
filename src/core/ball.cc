@@ -83,8 +83,8 @@ void Ball::CollideWithBottomBumper(Bumper* bottom_bumper, float left_wall_x, flo
         return;
     }
 
-    // if the ball colliding was a brittle ball, then we need to "break off" a part of the user bumper.
-    if (type_of_ball_ == Brittle) {
+    // if the ball colliding was a brittle ball, then we need to "break off" a part of the bumper.
+    if (type_of_ball_ == Brittle && velocity_.y > 0) {
         bottom_bumper->ExecuteBrittleCollision(position_);
     }
 
@@ -100,50 +100,8 @@ void Ball::CollideWithBottomBumper(Bumper* bottom_bumper, float left_wall_x, flo
         type_of_ball_ = Smash;
     }
     else {
-        // if last ball was smash ball, slow down the velocity by however much the previous smash increased it
-        // kind of like how receiving a tennis serve will slow the ball down to a slower speed
         double new_velocity;
-        if (next_ball_type == Smash) {
-            new_velocity = fmin(max_ball_velocity, length(velocity_) + difficulty_increment_ - smash_velocity_increase_);
-        } else {
-            new_velocity = fmin(max_ball_velocity, length(velocity_) + difficulty_increment_);
-        }
-        velocity_ = Game::RandomVelocityGivenSpeed(new_velocity,
-                                                         false);
-        ResetAllEffects();
-    }
-
-}
-
-void Ball::CollideWithTopBumper(Bumper* top_bumper, float left_wall_x, float right_wall_x, float top_wall_y, float bottom_wall_y) {
-    // important note about effects, the ball can only have one effect at a time.
-    // so there is no such thing as a dizzy smash ball for example- I've set up the logic here
-    // so that its impossible to get both effects
-
-    // also as of now I am only assigning CPU the power to issue out monkey, dizzy, and brittle balls
-    // while user can only issue out smash balls
-
-    if (abs(position_.y - top_wall_y) < top_bumper->GetBumperThickness() + (float) (radius_ / 2.0) &&
-        abs(position_.x - top_bumper->GetBumperCenter().x) < (float) (top_bumper->GetBumperLength() / 2.0)) {
-        // is colliding
-    }
-    else {
-        return;
-    }
-
-    BallType next_ball_type = top_bumper->GenerateBallType();
-
-    if (next_ball_type == Smash) {
-        // if smash ball
-        double target_x_location = Game::GenerateRandomDoubleBetween(left_wall_x, right_wall_x);
-        double velocity_of_ball = fmin(max_ball_velocity, length(velocity_) + smash_velocity_increase_);
-        velocity_ = VelocityGivenTargetAndSpeed(vec2(target_x_location, bottom_wall_y), velocity_of_ball);
-        type_of_ball_ = Smash;
-    }
-    else {
-
-        double new_velocity;
-        if (next_ball_type == Smash) {
+        if (type_of_ball_ == Smash) {
             // if last ball was smash ball
             new_velocity = fmin(max_ball_velocity, length(velocity_) + difficulty_increment_ - smash_velocity_increase_);
         } else {
@@ -164,7 +122,73 @@ void Ball::CollideWithTopBumper(Bumper* top_bumper, float left_wall_x, float rig
             ResetAllEffects();
             type_of_ball_ = Brittle;
         }
-        else if (next_ball_type = Random) {
+        else if (next_ball_type == Random) {
+            ResetAllEffects();
+            type_of_ball_ = Random;
+        }
+        else {
+            // will set type of ball to Normal
+            ResetAllEffects();
+        }
+        // generate a velocity that is going the other way (negative y velocity)
+        velocity_ = Game::RandomVelocityGivenSpeed(new_velocity,
+                                                   false);
+
+    }
+
+}
+
+void Ball::CollideWithTopBumper(Bumper* top_bumper, float left_wall_x, float right_wall_x, float top_wall_y, float bottom_wall_y) {
+    // important note about effects, the ball can only have one effect at a time.
+    // so there is no such thing as a dizzy smash ball for example- I've set up the logic here
+    // so that its impossible to get both effects
+
+    if (abs(position_.y - top_wall_y) < top_bumper->GetBumperThickness() + (float) (radius_ / 2.0) &&
+        abs(position_.x - top_bumper->GetBumperCenter().x) < (float) (top_bumper->GetBumperLength() / 2.0)) {
+        // is colliding
+    }
+    else {
+        return;
+    }
+
+    if (type_of_ball_ == Brittle && velocity_.y < 0) {
+        top_bumper->ExecuteBrittleCollision(position_);
+    }
+
+    BallType next_ball_type = top_bumper->GenerateBallType();
+
+    if (next_ball_type == Smash) {
+        // if smash ball
+        double target_x_location = Game::GenerateRandomDoubleBetween(left_wall_x, right_wall_x);
+        double velocity_of_ball = fmin(max_ball_velocity, length(velocity_) + smash_velocity_increase_);
+        velocity_ = VelocityGivenTargetAndSpeed(vec2(target_x_location, bottom_wall_y), velocity_of_ball);
+        type_of_ball_ = Smash;
+    }
+    else {
+
+        double new_velocity;
+        if (type_of_ball_ == Smash) {
+            // if last ball was smash ball
+            new_velocity = fmin(max_ball_velocity, length(velocity_) + difficulty_increment_ - smash_velocity_increase_);
+        } else {
+            new_velocity = fmin(max_ball_velocity, length(velocity_) + difficulty_increment_);
+        }
+
+        if (next_ball_type == Dizzy) {
+            // if cpu gets dizzy ball
+            ResetAllEffects();
+            type_of_ball_ = Dizzy;
+        }
+        else if (next_ball_type == Monkey) {
+            // if cpu gets monkey ball
+            ResetAllEffects();
+            type_of_ball_ = Monkey;
+        }
+        else if (next_ball_type == Brittle) {
+            ResetAllEffects();
+            type_of_ball_ = Brittle;
+        }
+        else if (next_ball_type == Random) {
             ResetAllEffects();
             type_of_ball_ = Random;
         }

@@ -67,6 +67,7 @@ class Ball {
     double smash_velocity_increase_;
     double frames_elapsed_;
     double frames_until_random_;
+
     // how much faster the ball gets with each consecutive bumper collision (this is regardless of what kind of ball it is)
     double difficulty_increment_;
 

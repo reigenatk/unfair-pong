@@ -5,6 +5,7 @@
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
 #include <core/bumper.h>
+#include <core/gamemode.h>
 
 
 using std::pair;
@@ -32,6 +33,8 @@ class Game {
      * After being deserialized it will also start the game by setting is_game_running = true
      */
     void SelectDifficulty(std::string difficulty);
+
+    void SelectGameMode(GameMode g);
 
     void Draw();
 
@@ -112,7 +115,6 @@ class Game {
      */
     void UpdateBall();
 
-
     void UpdateBumpers();
 
  private:
@@ -141,6 +143,10 @@ class Game {
     // initialize ball velocities in the SetupNewRound() method and in the constructor
     double starting_ball_velocity_floor_;
     double starting_ball_velocity_cap_;
+
+    // depending on what game mode the user selects, we will
+    // initialize either 2 CPU bumpers or 1 CPU bumper for top and 1 User bumper for bottom
+    GameMode game_mode_;
 
 };
 

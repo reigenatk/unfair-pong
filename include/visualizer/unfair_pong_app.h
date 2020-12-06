@@ -1,5 +1,6 @@
 #pragma once
 
+#include <core/gamemode.h>
 #include "cinder/app/App.h"
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
@@ -12,6 +13,7 @@ namespace visualizer {
  * Runs the animation for ideal gas
  */
 class UnfairPongApp : public ci::app::App {
+
  public:
 
   const double window_length_ = 800;
@@ -34,6 +36,7 @@ class UnfairPongApp : public ci::app::App {
   Game unfair_pong_instance;
   cinder::gl::Texture2dRef sad_emoji_;
 
+  GameMode game_mode_;
 
 };
 

@@ -43,6 +43,7 @@ public:
 protected:
     vec2 center_position_;
     double length_of_bumper_;
+    double original_length_of_bumper; // need this field for brittle balls- else bumper forgets what its old length was with a new round
     cinder::Color bumper_color_;
     double thickness_of_bumper_;
     float left_wall_;
