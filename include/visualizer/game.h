@@ -30,7 +30,6 @@ class Game {
     /**
      * This method is called by the constructor and deserializes from JSON into member variables
      * According to what was in the JSON file for the selected difficulty
-     * After being deserialized it will also start the game by setting is_game_running = true
      */
     void SelectDifficulty(std::string difficulty);
 
@@ -59,6 +58,12 @@ class Game {
 
     void SetBottomBumper(Bumper* test_bumper);
 
+    void SetTopPlayerScore(size_t score);
+
+    void SetBottomPlayerScore(size_t score);
+
+    void SetPointsToWin(size_t points);
+
     /**
      * Generates random double between -param and param
      */
@@ -78,9 +83,6 @@ class Game {
      */
     static vec2 RandomVelocityGivenSpeed(double speed_desired, bool positive_y_velocity);
 
-    /**
-     * We use this getter for arrow controls.
-     */
     Bumper* GetTopBumper();
 
     Bumper* GetBottomBumper();
@@ -88,14 +90,6 @@ class Game {
     size_t GetTopPlayerScore() const;
 
     size_t GetBottomPlayerScore() const;
-
-    // testing
-
-    void SetTopPlayerScore(size_t score);
-
-    void SetBottomPlayerScore(size_t score);
-
-    void SetPointsToWin(size_t points);
 
     bool IsDifficultySelected() const;
 
@@ -127,6 +121,9 @@ class Game {
      */
     void SetupNewRound();
 
+    /**
+     * Set isgamerunning to true which will trigger update in the cinder app
+     */
     void StartNewRound();
 
     /**
@@ -143,7 +140,6 @@ class Game {
     double height_;
 
     // these variables deal with game state
-    bool is_gamemode_selected_;
     bool is_difficulty_selected_;
     bool is_round_running_;
     size_t bottom_player_score_;
@@ -151,7 +147,8 @@ class Game {
 
 
     Ball ball_in_play;
-    // need to store pointers since Bumper itself is an abstract class with 1 abstract method
+    // need to store pointers since Bumper itself is an abstract class with abstract methods
+    // so cant have an instance of it
     Bumper* top_bumper;
     Bumper* bottom_bumper;
 

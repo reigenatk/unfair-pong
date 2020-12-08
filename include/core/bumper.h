@@ -22,15 +22,26 @@ public:
     vec2& GetBumperCenter();
     double GetBumperLength() const;
 
-    // get rid of setters and replace with brittle collision method
-
     void ResetForNewRound(const vec2& new_position);
     void ExecuteBrittleCollision(const vec2& ball_coords);
+    /**
+     * This method "decides" what type of ball the next one should be and is called upon each collision
+     * of ball and bumper. Implemented differently between user and CPU bumper since user can only spawn smash
+     * while CPU can spawn all 5 kinds of balls
+     * @return
+     */
     virtual BallType GenerateBallType() = 0;
+
+    /**
+     * Draws the bumper in a certain way depending on if it is the top bumper
+     * @param is_top_bumper
+     */
     void Draw(bool is_top_bumper) const;
 
-    // this is a method that only the CPU bumper will add to since the user bumper
-    // does not get controlled by anything but mouse
+    /**
+     * Two abstract methods meant for CPU and User movement, respectively. Implemented in both bumpers but
+     * only have actual functionality for one of them
+     */
     virtual void SmartMovement(vec2 ball_position, vec2 ball_velocity) = 0;
     virtual void MouseMovement(vec2 mouse_coords) = 0;
     /**
@@ -43,7 +54,7 @@ public:
 protected:
     vec2 center_position_;
     double length_of_bumper_;
-    double original_length_of_bumper; // need this field for brittle balls- else bumper forgets what its old length was with a new round
+    double original_length_of_bumper; // need this field for brittle balls- since when we reset the round we need to know what old length was
     cinder::Color bumper_color_;
     double thickness_of_bumper_;
     float left_wall_;

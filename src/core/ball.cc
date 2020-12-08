@@ -264,7 +264,8 @@ void Ball::UpdatePositionWithVelocity(vec2 farther_user_corner) {
         velocity_ = VelocityGivenTargetAndSpeed(farther_user_corner, length(velocity_));
     }
     if (type_of_ball_ == Random && frames_elapsed_ >= frames_until_random_) {
-        // do a "jerk" of motion
+        // do a "jerk" of motion which is basically when we add a bit of velocity on top of the ball
+        // and also throw it in a random direction that is still heading towards the same player
 
         // figure out what the y velocity is, we don't want to change that
         // in other words ball should always be heading towards other player
@@ -286,6 +287,7 @@ void Ball::UpdatePositionWithVelocity(vec2 farther_user_corner) {
         // so it starts 50, 52, 54, ...
         // can change this of course
 
+        // increase the amount of time between "jerks" of motion
         size_t frame_change = 2;
         frames_until_random_ += frame_change;
         frames_elapsed_ = 0;
