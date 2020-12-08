@@ -99,6 +99,16 @@ void UnfairPongApp::draw() {
         ci::gl::drawStringCentered("Press: 1 for easy, 2 for medium, 3 for hard, 4 for unfair",
                                    vec2(window_length_ / 2.0, window_height_ / 2.0 + 100),
                                    ci::Color(124, 252, 0), ci::Font("Helvetica", 40));
+        std::string gamemode;
+        if (game_mode_ == CPUVsCPU) {
+            gamemode = "CPU vs CPU";
+        }
+        else {
+            gamemode = "User vs CPU";
+        }
+        ci::gl::drawStringCentered("Gamemode: " + gamemode,
+                                   vec2(window_length_ / 2.0, window_height_ / 2.0 + 200),
+                                   ci::Color(1, 0.753f, 0.796f), ci::Font("Helvetica", 20));
 
     }
     else {

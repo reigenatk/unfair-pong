@@ -14,30 +14,58 @@ using unfairpong::CpuBumper;
 using std::cout;
 
 TEST_CASE("Try collision between Ball and Wall") {
-    Game test_instance = Game(vec2(100, 100), 200, 200);
-    Ball ball_in_play = Ball(vec2(102.5, 103),
-                        vec2(-1, 0), cinder::Color(0, 1, 0), 1, 0.5);
-    // should go (102.5, 103), (101.5, 103), (100.5, 103) detect collision, (101.5, 103)
+    SECTION("Left Wall") {
+        Game test_instance = Game(vec2(100, 100), 200, 200);
+        Ball ball_in_play = Ball(vec2(102.5, 103),
+                                 vec2(-1, 0), cinder::Color(0, 1, 0), 1, 0.5);
+        // should go (102.5, 103), (101.5, 103), (100.5, 103) detect collision, (101.5, 103)
 
-    test_instance.SetBall(ball_in_play);
+        test_instance.SetBall(ball_in_play);
 
-    test_instance.GetBall().UpdatePositionWithVelocity(vec2(0,0));
-    test_instance.ExecuteBallWallCollision();
-    Ball& one_tick = test_instance.GetBall();
-    REQUIRE(one_tick.GetPosition() == vec2(101.5, 103));
-    REQUIRE(one_tick.GetVelocity() == vec2(-1, 0));
+        test_instance.GetBall().UpdatePositionWithVelocity(vec2(0,0));
+        test_instance.ExecuteBallWallCollision();
+        Ball& one_tick = test_instance.GetBall();
+        REQUIRE(one_tick.GetPosition() == vec2(101.5, 103));
+        REQUIRE(one_tick.GetVelocity() == vec2(-1, 0));
 
-    test_instance.GetBall().UpdatePositionWithVelocity(vec2(0,0));
-    test_instance.ExecuteBallWallCollision();
-    Ball two_tick = test_instance.GetBall();
-    REQUIRE(two_tick.GetPosition() == vec2(100.5, 103));
-    REQUIRE(one_tick.GetVelocity() == vec2(1, 0));
+        test_instance.GetBall().UpdatePositionWithVelocity(vec2(0,0));
+        test_instance.ExecuteBallWallCollision();
+        Ball two_tick = test_instance.GetBall();
+        REQUIRE(two_tick.GetPosition() == vec2(100.5, 103));
+        REQUIRE(one_tick.GetVelocity() == vec2(1, 0));
 
-    test_instance.GetBall().UpdatePositionWithVelocity(vec2(0,0));
-    test_instance.ExecuteBallWallCollision();
-    Ball three_tick = test_instance.GetBall();
-    REQUIRE(three_tick.GetPosition() == vec2(101.5, 103));
-    REQUIRE(one_tick.GetVelocity() == vec2(1, 0));
+        test_instance.GetBall().UpdatePositionWithVelocity(vec2(0,0));
+        test_instance.ExecuteBallWallCollision();
+        Ball three_tick = test_instance.GetBall();
+        REQUIRE(three_tick.GetPosition() == vec2(101.5, 103));
+        REQUIRE(one_tick.GetVelocity() == vec2(1, 0));
+    }
+    SECTION("Right Wall") {
+        Game test_instance = Game(vec2(100, 100), 200, 200);
+        Ball ball_in_play = Ball(vec2(297.5, 103),
+                                 vec2(1, 0), cinder::Color(0, 1, 0), 1, 0.5);
+        // should go (297.5, 103), (298.5, 103), (299.5, 103) detect collision, (298.5, 103)
+
+        test_instance.SetBall(ball_in_play);
+
+        test_instance.GetBall().UpdatePositionWithVelocity(vec2(0,0));
+        test_instance.ExecuteBallWallCollision();
+        Ball& one_tick = test_instance.GetBall();
+        REQUIRE(one_tick.GetPosition() == vec2(298.5, 103));
+        REQUIRE(one_tick.GetVelocity() == vec2(1, 0));
+
+        test_instance.GetBall().UpdatePositionWithVelocity(vec2(0,0));
+        test_instance.ExecuteBallWallCollision();
+        Ball two_tick = test_instance.GetBall();
+        REQUIRE(two_tick.GetPosition() == vec2(299.5, 103));
+        REQUIRE(one_tick.GetVelocity() == vec2(-1, 0));
+
+        test_instance.GetBall().UpdatePositionWithVelocity(vec2(0,0));
+        test_instance.ExecuteBallWallCollision();
+        Ball three_tick = test_instance.GetBall();
+        REQUIRE(three_tick.GetPosition() == vec2(298.5, 103));
+        REQUIRE(one_tick.GetVelocity() == vec2(-1, 0));
+    }
 }
 
 TEST_CASE("Test collision between ball and bumpers") {
@@ -98,7 +126,6 @@ TEST_CASE("Test collision between ball and bumpers") {
 
         double len = length(test_instance.GetBall().GetVelocity());
         bool correct_velocity = false;
-        cout << len;
         if (len == Approx(5).margin(0.02) || len == Approx(14).margin(0.02)) {
             correct_velocity = true;
         }

@@ -263,7 +263,7 @@ void Ball::UpdatePositionWithVelocity(vec2 farther_user_corner) {
     if (type_of_ball_ == Monkey) {
         velocity_ = VelocityGivenTargetAndSpeed(farther_user_corner, length(velocity_));
     }
-    if (type_of_ball_ == Random && frames_elapsed_ == frames_until_random_) {
+    if (type_of_ball_ == Random && frames_elapsed_ >= frames_until_random_) {
         // do a "jerk" of motion
 
         // figure out what the y velocity is, we don't want to change that
@@ -286,8 +286,8 @@ void Ball::UpdatePositionWithVelocity(vec2 farther_user_corner) {
         // so it starts 50, 52, 54, ...
         // can change this of course
 
-        size_t jerk_increment = 2;
-        frames_until_random_ += jerk_increment;
+        size_t frame_change = 2;
+        frames_until_random_ += frame_change;
         frames_elapsed_ = 0;
     }
 
