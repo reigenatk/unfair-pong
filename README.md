@@ -1,3 +1,7 @@
-Fill this in before the final project deadline. Someone who has _no familiarity_ with your project should be able to read this and understand:
-* what your project does
-* how to set it up and run it
+Welcome to unfair pong, a spin on the game Pong which we all know.
+
+Control your bumper with the mouse, and first to score five points wins.
+
+There are two gamemodes, five kinds of balls, and four difficulties! See if you can beat them all, but be warned- it gets quite unfair!
+
+
